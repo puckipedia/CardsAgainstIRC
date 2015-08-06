@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NLog;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -50,17 +51,84 @@ namespace CardsAgainstIRC3.Game
 
         public virtual void Activate()
         {
-            Console.WriteLine("Activated {} in channel {}", this.GetType().Name, Manager.Channel);
         }
 
-        internal bool Command(GameUser user, string command, IEnumerable<string> arguments)
+        public virtual void Deactivate()
         {
-            if (_commands.ContainsKey(command))
+        }
+
+        internal virtual bool Command(string nick, string command, IEnumerable<string> arguments)
+        {
+            if (!_commands.ContainsKey(command))
                 return false;
 
-            _commands[command](user, arguments);
+            _commands[command](Manager.Resolve(nick), arguments);
 
             return true;
         }
+
+        [Command("!state")]
+        public void StateCommand(GameUser user, IEnumerable<string> args)
+        {
+            Manager.SendPrivate(user, "Current state class is {0}", this.GetType());
+        }
+    }
+
+    public class TestState : State
+    {
+        private Logger logger;
+
+        public TestState(GameManager manager)
+            : base(manager)
+        {
+            logger = LogManager.GetLogger("TestState<" + manager.Channel + ">");
+        }
+
+        public override void Activate()
+        {
+            logger.Trace("Test state activated");
+        }
+
+        [Command("!log")]
+        public void LogCommand(GameUser user, IEnumerable<string> str)
+        {
+            logger.Trace(string.Join("|", str));
+        }
+    }
+
+    public class BaseState : State {
+        public BaseState(GameManager manager)
+            : base(manager)
+        { }
+    }
+
+    public class WaitForJoinState : BaseState
+    {
+        public WaitForJoinState(GameManager manager)
+            : base(manager)
+        { }
+
+    }
+
+public class InactiveState : State
+    {
+        public InactiveState(GameManager manager)
+            : base(manager)
+        { }
+
+        internal override bool Command(string nick, string command, IEnumerable<string> arguments)
+        {
+            if (command == "!start")
+            {
+                Manager.SendToAll("{0} started a game! | send !join to join!", nick);
+                var started = Manager.UserAdd(nick);
+                Manager.Data["started"] = started;
+                Manager.StartState(new WaitForJoinState(Manager));
+                return true;
+            }
+
+            return base.Command(nick, command, arguments);
+        }
+
     }
 }

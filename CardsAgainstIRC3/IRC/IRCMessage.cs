@@ -44,6 +44,13 @@ namespace CardsAgainstIRC3
         public IRCMessage(string message)
         {
             string[] splitUp = message.Split(' ');
+            if (message.Length == 0)
+            {
+                Command = null;
+                Origin = new IRCMessageOrigin();
+                Arguments = new string[] { };
+                return;
+            }
 
             if (message[0] == ':')
             {
@@ -53,6 +60,13 @@ namespace CardsAgainstIRC3
             else
             {
                 Origin = new IRCMessageOrigin();
+            }
+
+            if (splitUp.Length == 0)
+            {
+                Command = null;
+                Arguments = new string[] { };
+                return;
             }
 
             Command = splitUp[0];
