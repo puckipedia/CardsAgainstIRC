@@ -314,7 +314,7 @@ namespace CardsAgainstIRC3.Game
             _whiteCardStack.Clear();
             _blackCardStack.Clear();
             _userMap.Clear();
-            _output.UndistinguishPeople(Channel, _users.Where(a => a.Value.Bot != null).Select(a => a.Value.Nick));
+            _output.UndistinguishPeople(Channel, _users.Where(a => a.Value.Bot == null).Select(a => a.Value.Nick));
             _users.Clear();
             CardSets.Clear();
             Data.Clear();
@@ -411,7 +411,8 @@ namespace CardsAgainstIRC3.Game
             user.Nick = nick;
             _users[user.Guid] = user;
             _userMap[nick] = user.Guid;
-            _output.DistinguishPeople(Channel, new string[] { nick });
+            if (!nick.StartsWith("<"))
+                _output.DistinguishPeople(Channel, new string[] { nick });
             return user;
         }
 
