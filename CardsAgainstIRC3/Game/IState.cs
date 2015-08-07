@@ -57,6 +57,9 @@ namespace CardsAgainstIRC3.Game
         {
         }
 
+        public virtual void Tick()
+        { }
+
         internal virtual bool Command(string nick, string command, IEnumerable<string> arguments)
         {
             if (!_commands.ContainsKey(command))
@@ -91,6 +94,20 @@ namespace CardsAgainstIRC3.Game
             Manager.SendPrivate(user, "cardsets: {0}", string.Join(",", GameManager.CardSetTypes.Keys));
         }
 
+#if DEBUG
+        [Command("!fake")]
+        public void FakeCommand(string user, IEnumerable<string> args)
+        {
+            foreach (var arg in args)
+                Manager.AddMessage(new IRCMessage(arg));
+        }
+#endif
+
+        [Command("!commands")]
+        public void CommandsCommand(string user, IEnumerable<string> args)
+        {
+            Manager.SendPrivate(user, "Commands: {0}", string.Join(", ", _commands.Values));
+        }
         public virtual bool UserLeft(GameUser user)
         {
             return true;

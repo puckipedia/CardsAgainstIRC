@@ -67,7 +67,26 @@ namespace CardsAgainstIRC3.Game.States
                 CheckReady();
             }
 
+            if (user == Manager.CurrentCzar())
+            {
+                Manager.SendToAll("Czar left! Discarding round...");
+                foreach(var person in ChosenUsers)
+                    person.ChosenCards = new int[] { };
+
+                Manager.StartState(new ChoosingCards(Manager));
+            }
+
             return false;
+        }
+
+        public override void TimeoutReached()
+        {
+            Manager.SendToAll("Timeout reached! {0} - 1 point", string.Join(", ", WaitingOnUsers.Select(a => a.Nick)));
+
+            foreach (var person in WaitingOnUsers)
+                person.Points--;
+
+            Manager.StartState(new Vote(Manager));
         }
 
         private void CheckReady()
@@ -87,6 +106,12 @@ namespace CardsAgainstIRC3.Game.States
             if (!WaitingOnUsers.Contains(user) && !ChosenUsers.Contains(user))
             {
                 Manager.SendPrivate(user, "You don't have to choose cards!");
+                return;
+            }
+
+            if (arguments.Count() == 0 && Manager.CurrentBlackCard.Parts.Length != 1)
+            {
+                user.SendCards();
                 return;
             }
 
@@ -114,6 +139,12 @@ namespace CardsAgainstIRC3.Game.States
             {
                 Manager.SendPrivate(user, "Invalid int!");
             }
+        }
+
+        [Command("!status")]
+        public void StatusCommand(string nick, IEnumerable<string> arguments)
+        {
+            Manager.SendPublic(nick, "Waiting for {0} to choose", string.Join(", ", WaitingOnUsers.Select(a => a.Nick)));
         }
 
         [Command("!skip")]

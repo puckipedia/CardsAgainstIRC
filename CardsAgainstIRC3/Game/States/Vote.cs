@@ -10,7 +10,7 @@ namespace CardsAgainstIRC3.Game.States
     public class Vote : Base
     {
         public Vote(GameManager manager)
-            : base(manager)
+            : base(manager, 60)
         { }
 
         public List<GameUser> CzarOrder = null;
@@ -19,10 +19,17 @@ namespace CardsAgainstIRC3.Game.States
 
         public override void Activate()
         {
-            Manager.SendToAll("Everyone has chosen! The card sets are:");
-
             CzarOrder = Manager.AllUsers.Where(a => a.Bot != null || a.HasChosenCards).OrderBy(a => Random.Next()).ToList();
+            if (CzarOrder.Count == 0)
+            {
+                Manager.SendToAll("Noone has chosen... Next round!");
+                Manager.StartState(new ChoosingCards(Manager));
+                return;
+            }
+
             int i = 0;
+            Manager.SendToAll("Everyone has chosen! The card sets are: ({0} - your time to choose)", Manager.CurrentCzar().Nick);
+
             foreach (var or in CzarOrder)
             {
                 if (or.Bot != null)
@@ -34,6 +41,22 @@ namespace CardsAgainstIRC3.Game.States
 
                 i++;
             }
+        }
+
+        public override void TimeoutReached()
+        {
+            Manager.SendToAll("Timeout has been reached! Noone won... Point subtracted for the czar!");
+            Manager.CurrentCzar().Points--;
+            Manager.SendToAll("Points: {0}", Manager.GetPoints(a => CzarOrder.Contains(a) ? " (" + CzarOrder.IndexOf(a) + ")" : ""));
+            foreach (var person in CzarOrder)
+                person.ChosenCards = new int[] { };
+            Manager.StartState(new ChoosingCards(Manager));
+        }
+
+        [Command("!status")]
+        public void StatusCommand(string nick, IEnumerable<string> arguments)
+        {
+            Manager.SendPublic(nick, "Waiting for czar {0} to choose...", Manager.CurrentCzar().Nick);
         }
 
         [Command("!card")]
@@ -53,18 +76,7 @@ namespace CardsAgainstIRC3.Game.States
                     Manager.SendPrivate(user, "Out of range!");
                 else
                 {
-                    Manager.SendToAll("And the winner is... {0}!", CzarOrder[winner].Nick);
-                    Manager.SendToAll("{0}", Manager.CurrentBlackCard.Representation(CardSets[CzarOrder[winner].Guid]));
-                    CzarOrder[winner].Points++;
-
-                    Manager.SendToAll("Points: {0}", Manager.GetPoints(a => CzarOrder.Contains(a) ? " (" + CzarOrder.IndexOf(a) + ")" : ""));
-                    if (CzarOrder[winner].Points >= Manager.Limit)
-                    {
-                        Manager.SendToAll("We have a winner! {0}!", CzarOrder[winner].Nick);
-                        Manager.Reset();
-                    }
-                    else
-                        Manager.StartState(new ChoosingCards(Manager));
+                    SelectWinner(winner);
                 }
             }
             catch (Exception)
@@ -73,13 +85,33 @@ namespace CardsAgainstIRC3.Game.States
             }
         }
 
+        private void SelectWinner(int winner)
+        {
+            Manager.SendToAll("And the winner is... {0}!", CzarOrder[winner].Nick);
+            Manager.SendToAll("{0}", Manager.CurrentBlackCard.Representation(CardSets[CzarOrder[winner].Guid]));
+            CzarOrder[winner].Points++;
+
+            Manager.SendToAll("Points: {0}", Manager.GetPoints(a => CzarOrder.Contains(a) ? " (" + CzarOrder.IndexOf(a) + ")" : ""));
+
+            foreach (var person in Manager.AllUsers)
+                person.RemoveCards();
+
+            if (CzarOrder[winner].Points >= Manager.Limit)
+            {
+                Manager.SendToAll("We have a winner! {0}!", CzarOrder[winner].Nick);
+                Manager.Reset();
+            }
+            else
+                Manager.StartState(new ChoosingCards(Manager));
+        }
+
         public override bool UserLeft(GameUser user)
         {
             if (user == Manager.CurrentCzar())
             {
                 int random = Random.Next(CzarOrder.Count);
                 Manager.SendToAll("Czar has left! Choosing random card to win");
-                CardCommand(user.Nick, new string[] { random.ToString() });
+                SelectWinner(random);
             }
 
             return false;

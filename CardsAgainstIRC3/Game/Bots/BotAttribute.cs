@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace CardsAgainstIRC3.Game.Bots
 {
     [AttributeUsage(AttributeTargets.Class)]
-    public class BotAttribute : Attribute
+    public sealed class BotAttribute : Attribute
     {
         public string Name
         {

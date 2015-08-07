@@ -24,5 +24,15 @@ namespace CardsAgainstIRC3.Game
         {
             logger.Info("private message to {0} in {1}: {2}", Nick, Channel, string.Format(Message, format));
         }
+
+        public virtual void DistinguishPeople(string Channel, IEnumerable<string> persons)
+        {
+
+        }
+
+        public virtual void UndistinguishPeople(string Channel, IEnumerable<string> persons)
+        {
+
+        }
     }
 }

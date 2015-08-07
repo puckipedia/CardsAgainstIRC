@@ -1,8 +1,10 @@
 ﻿using NLog;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CardsAgainstIRC3.Game
@@ -35,7 +37,26 @@ namespace CardsAgainstIRC3.Game
 
         public void SendCards()
         {
-            _manager.SendPrivate(this, "{0}", string.Join(" | ", Cards.Zip(Enumerable.Range(0, Cards.Length), (a, b) => b + ": " + (!a.HasValue ? "<null>" : a.Value.Representation()))));
+            int max_message_length = 512 - 2 - 8 - _manager.Channel.Length - 1 - 1 - Nick.Length - 1;
+            List<string> currentSegments = new List<string>();
+            int totalLength = 0;
+
+            for (int i = 0; i < Cards.Length; i++)
+            {
+                var newSegment = string.Format("{0}: {1}", i, (!Cards[i].HasValue ? "<null>" : Cards[i].Value.Representation()));
+                if (totalLength + 3 + newSegment.Length > max_message_length)
+                {
+                    _manager.SendPrivate(this, "{0}", string.Join(" | ", currentSegments));
+                    totalLength = 0;
+                    currentSegments.Clear();
+                }
+
+                currentSegments.Add(newSegment);
+                totalLength += 3 + newSegment.Length;
+            }
+
+            if (currentSegments.Count > 0)
+                _manager.SendPrivate(this, "{0}", string.Join(" | ", currentSegments));
         }
 
         public string Nick = "";
@@ -54,7 +75,7 @@ namespace CardsAgainstIRC3.Game
 
     public class GameManager
     {
-        public GameManager(GameMain main, GameOutput output, string Channel)
+        private GameManager(GameMain main, GameOutput output, string Channel)
         {
             this._main = main;
             this._output = output;
@@ -78,7 +99,19 @@ namespace CardsAgainstIRC3.Game
             Reset();
         }
 
-        public int Limit;
+        public Dictionary<string, List<List<string>>> DefaultSets
+        {
+            get
+            {
+                return _main.Config.CardSets;
+            }
+        }
+
+        public int Limit
+        {
+            get;
+            set;
+        }
 
         private Logger _log;
         private GameMain _main;
@@ -194,6 +227,17 @@ namespace CardsAgainstIRC3.Game
             user.CanVote = false;
         }
 
+        public void RemoveBot(string name)
+        {
+            var user = Resolve("<" + name + ">");
+            if (user == null)
+                return;
+            if (CurrentState.UserLeft(user))
+                UserQuit("<" + name + ">");
+            else
+                user.WantsToLeave = true;
+        }
+
         public void UpdateCzars()
         {
             for (int i = 0; i < _czarOrder.Count; i++)
@@ -270,6 +314,7 @@ namespace CardsAgainstIRC3.Game
             _whiteCardStack.Clear();
             _blackCardStack.Clear();
             _userMap.Clear();
+            _output.UndistinguishPeople(Channel, _users.Where(a => a.Value.Bot != null).Select(a => a.Value.Nick));
             _users.Clear();
             CardSets.Clear();
             Data.Clear();
@@ -356,7 +401,7 @@ namespace CardsAgainstIRC3.Game
 
             _userMap.Remove(nick);
             _users.Remove(user.Guid);
-
+            _output.UndistinguishPeople(Channel, new string[] { nick });
             _log.Info("{0} just quit!");
         }
 
@@ -366,11 +411,11 @@ namespace CardsAgainstIRC3.Game
             user.Nick = nick;
             _users[user.Guid] = user;
             _userMap[nick] = user.Guid;
-
+            _output.DistinguishPeople(Channel, new string[] { nick });
             return user;
         }
 
-        public bool OnIRCMessage(IRCMessage msg)
+        private bool OnIRCMessage(IRCMessage msg)
         {
             switch (msg.Command)
             {
@@ -415,6 +460,46 @@ namespace CardsAgainstIRC3.Game
                     break;
             }
             return false;
+        }
+
+        private AutoResetEvent _autoResetEvent = new AutoResetEvent(false);
+        private ConcurrentQueue<IRCMessage> _messages = new ConcurrentQueue<IRCMessage>();
+        private Thread _runloopThread;
+        private void Runloop()
+        {
+            while (true)
+            {
+                IRCMessage msg;
+                if (_messages.Count > 0 && _messages.TryDequeue(out msg))
+                {
+                    OnIRCMessage(msg);
+                }
+
+
+                CurrentState.Tick();
+
+                _autoResetEvent.WaitOne(1000);
+                _autoResetEvent.Reset();
+            }
+        }
+
+
+
+        public static GameManager CreateManager(GameMain main, GameOutput output, string Channel)
+        {
+            var manager = new GameManager(main, output, Channel);
+
+            Thread thread = new Thread(delegate () { manager.Runloop(); });
+            manager._runloopThread = thread;
+
+            thread.Start();
+            return manager;
+        }
+
+        public void AddMessage(IRCMessage msg)
+        {
+            _messages.Enqueue(msg);
+            _autoResetEvent.Set();
         }
 
 

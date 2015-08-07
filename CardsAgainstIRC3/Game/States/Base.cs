@@ -10,9 +10,15 @@ namespace CardsAgainstIRC3.Game.States
 
     public class Base : State
     {
-        public Base(GameManager manager)
+        public double Timeout
+        {
+            get;
+            set;
+        }
+
+        public Base(GameManager manager, int timeout = -1)
             : base(manager)
-        { }
+        { Timeout = timeout; _lastTick = DateTime.Now; }
 
         [Command("!limit")]
         public void LimitCommand(string nick, IEnumerable<string> arguments)
@@ -36,12 +42,56 @@ namespace CardsAgainstIRC3.Game.States
             }
         }
 
+        public virtual void TimeoutReached()
+        { }
+
+        private DateTime _lastTick;
+
+        public override void Tick()
+        {
+            if (Timeout < 0)
+                return;
+            var now = DateTime.Now;
+            var diff = now - _lastTick;
+
+            _lastTick = now;
+            double previousTimeout = Timeout;
+            Timeout -= diff.TotalSeconds;
+
+            if ((int)(Timeout / 20) != (int)(previousTimeout / 20))
+            {
+                if (Timeout > 0.1 && Timeout < 60)
+                {
+                    Manager.SendToAll("{0} seconds to go!", (int)Timeout);
+                }
+            }
+
+            if (Timeout <= 0.1)
+                TimeoutReached();
+        }
+
+        [Command("!delay")]
+        public void DelayCommand(string nick, IEnumerable<string> arguments)
+        {
+            Timeout += 20;
+        }
+
+        [Command("!undelay")]
+        public void UndelayCommand(string nick, IEnumerable<string> arguments)
+        {
+            if (Timeout > 20)
+                Timeout -= 20;
+            else
+                Timeout = 1;
+        }
+
         [Command("!join")]
         public void JoinCommand(string nick, IEnumerable<string> arguments)
         {
             var player = Manager.UserAdd(nick);
             player.CanChooseCards = player.CanVote = true;
             Manager.UpdateCzars();
+            Manager.SendPublic(nick, "You joined!");
         }
 
         [Command("!leave")]
@@ -53,7 +103,10 @@ namespace CardsAgainstIRC3.Game.States
 
 
             if (UserLeft(player))
+            {
                 Manager.UserQuit(nick);
+                Manager.SendPublic(nick, "You left!");
+            }
             else
             {
                 player.WantsToLeave = true;
@@ -80,6 +133,7 @@ namespace CardsAgainstIRC3.Game.States
             string botNick = arguments.ElementAtOrDefault(1) ?? botID;
 
             Manager.AddBot(botNick, (IBot)GameManager.Bots[botID].GetConstructor(new Type[] { typeof(GameManager) }).Invoke(new object[] { Manager }));
+            Manager.SendPublic(nick, "Added <{0}> (a bot of type {1})", botNick, botID);
         }
 
         [Command("!addcards")]
@@ -98,7 +152,9 @@ namespace CardsAgainstIRC3.Game.States
                 return;
             }
 
-            Manager.AddCardSet((ICardSet)GameManager.CardSetTypes[cardsetID].GetConstructor(new Type[] { typeof(IEnumerable<string>) }).Invoke(new object[] { arguments.Skip(1) }));
+            var cardSet = (ICardSet)GameManager.CardSetTypes[cardsetID].GetConstructor(new Type[] { typeof(IEnumerable<string>) }).Invoke(new object[] { arguments.Skip(1) });
+            Manager.AddCardSet(cardSet);
+            Manager.SendPublic(nick, "Added {0}", cardSet.Description);
         }
 
         [Command("!cards")]
@@ -126,10 +182,66 @@ namespace CardsAgainstIRC3.Game.States
             {
                 var toremove = arguments.Select(a => Manager.CardSets[int.Parse(a)]);
                 Manager.CardSets.RemoveAll(a => toremove.Contains(a));
+                Manager.SendPublic(nick, "Removed card sets!");
             }
             catch (Exception)
             {
                 Manager.SendPublic(nick, "Failed to remove {0} card sets!", arguments.Count());
+            }
+        }
+
+        [Command("!defaults")]
+        public void DefaultsCommand(string nick, IEnumerable<string> arguments)
+        {
+            Manager.SendPrivate(nick, "Defaults: {0}", string.Join(", ", Manager.DefaultSets.Keys));
+        }
+
+        [Command("!users")]
+        public void UsersCommand(string nick, IEnumerable<string> arguments)
+        {
+            Manager.SendPrivate(nick, "Users: {0}", string.Join(", ", Manager.AllUsers.Select(a => a.Nick)));
+        }
+
+        [Command("!removebot")]
+        public void RemoveBotCommand(string nick, IEnumerable<string> arguments)
+        {
+            if (arguments.Count() == 0)
+                Manager.SendPrivate(nick, "Usage: !removebot name (without <>)");
+
+            foreach (var bot in arguments)
+            {
+                Manager.RemoveBot(bot);
+            }
+
+            Manager.SendPublic(nick, "Bots removed: {0}", string.Join(", ", arguments));
+        }
+
+        [Command("!currentbots")]
+        public void CurrentBotsCommand(string nick, IEnumerable<string> arguments)
+        {
+            Manager.SendPrivate(nick, "Current Bots: {0}", string.Join(", ", Manager.AllUsers.Where(a => a.Bot != null).Select(a => a.Nick)));
+        }
+
+        [Command("!adddefault")]
+        public void AddDefaultCommand(string nick, IEnumerable<string> arguments)
+        {
+            if (arguments.Count() == 0)
+                arguments = new string[] { "default" };
+
+            try {
+                var defaults = arguments.Select(a => new Tuple<string, List<List<string>>>(a, Manager.DefaultSets[a]));
+                foreach (var def in defaults)
+                {
+                    foreach (var list in def.Item2)
+                    {
+                        Manager.AddCardSet((ICardSet)GameManager.CardSetTypes[list[0]].GetConstructor(new Type[] { typeof(IEnumerable<string>) }).Invoke(new object[] { list.Skip(1) }));
+                    }
+                    Manager.SendPublic(nick, "Added card set {0}", def.Item1);
+                }
+            }
+            catch (Exception)
+            {
+                Manager.SendPublic(nick, "Failed to add defaults");
             }
         }
     }

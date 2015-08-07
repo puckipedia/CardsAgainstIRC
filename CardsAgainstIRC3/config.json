@@ -1,0 +1,20 @@
+﻿{
+  "irc": {
+    "name": "CardsAgainstIRC3",
+    "user": "CaI",
+    "gecos": "CardsAgainstIRC",
+    "pass": null,
+    "server": "irc.freenode.net",
+    "port": 6667
+  },
+
+  "channels": [ "##ingsoc" ],
+
+  "cardsets": {
+    "default": [
+      [ "cardcast", "PXWKC" ],
+      [ "cardcast", "A5DCM" ],
+      [ "cardcast", "759D2" ]
+    ]
+  }
+}
