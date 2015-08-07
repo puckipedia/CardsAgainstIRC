@@ -85,7 +85,7 @@ namespace CardsAgainstIRC3
         TcpClient Client;
         Dictionary<string, Game.GameManager> Managers = new Dictionary<string, Game.GameManager>();
 
-        public GameMain(string host, int port)
+        public GameMain()
         {
             Config = JsonConvert.DeserializeObject<Config>(File.ReadAllText("config.json"));
 
@@ -143,10 +143,7 @@ namespace CardsAgainstIRC3
 
         static void Main(string[] args)
         {
-            var main = new GameMain("chat.freenode.net", 6667);
-            main.Send(new IRCMessage() { Command = "NICK", Arguments = new string[] { main.BotName } });
-            main.Send(new IRCMessage() { Command = "USER", Arguments = new string[] { main.BotName, "*", "*", main.BotName } });
-            main.Send(new IRCMessage() { Command = "JOIN", Arguments = new string[] { "##ingsoc" } });
+            var main = new GameMain();
             main.Go();
         }
 
