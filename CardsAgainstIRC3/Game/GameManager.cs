@@ -33,6 +33,11 @@ namespace CardsAgainstIRC3.Game
                 Cards[card] = null;
         }
 
+        public void SendCards()
+        {
+            _manager.SendPrivate(this, "{0}", string.Join(" | ", Cards.Zip(Enumerable.Range(0, Cards.Length), (a, b) => b + ": " + (!a.HasValue ? "<null>" : a.Value.Representation()))));
+        }
+
         public string Nick = "";
         public Guid Guid = Guid.NewGuid();
         public Card?[] Cards = new Card?[10];
@@ -42,6 +47,7 @@ namespace CardsAgainstIRC3.Game
         public bool HasVoted = false;
         public bool HasChosenCards = false;
         public bool CanChooseCards = false;
+        public bool WantsToLeave = false;
 
         public IBot Bot = null;
     }
@@ -55,17 +61,50 @@ namespace CardsAgainstIRC3.Game
             this.Channel = Channel;
             _log = LogManager.GetLogger("GameManager<" + Channel + ">");
 
+            if (Bots == null)
+            {
+                Bots = this.GetType().Assembly.GetTypes()
+                    .Where(a => a.GetCustomAttributes(typeof(Bots.BotAttribute), false).Length > 0)
+                    .ToDictionary(a => (a.GetCustomAttributes(typeof(Bots.BotAttribute), false).First() as Bots.BotAttribute).Name, a => a);
+            }
+
+            if (CardSetTypes == null)
+            {
+                CardSetTypes = this.GetType().Assembly.GetTypes()
+                    .Where(a => a.GetCustomAttributes(typeof(CardSets.CardSetAttribute), false).Length > 0)
+                    .ToDictionary(a => (a.GetCustomAttributes(typeof(CardSets.CardSetAttribute), false).First() as CardSets.CardSetAttribute).Name, a => a);
+            }
+
             Reset();
         }
+
+        public int Limit;
 
         private Logger _log;
         private GameMain _main;
         private GameOutput _output;
         private Random _random = new Random();
 
-        private List<ICardSet> _cardSets = new List<ICardSet>();
+        public List<ICardSet> CardSets
+        {
+            get;
+            private set;
+        } = new List<ICardSet>();
+
         private List<GameUser> _czarOrder = new List<GameUser>();
         private int _currentCzar = 0;
+
+        public static Dictionary<string, Type> Bots
+        {
+            get;
+            private set;
+        } = null;
+
+        public static Dictionary<string, Type> CardSetTypes
+        {
+            get;
+            private set;
+        } = null;
 
         public Dictionary<string, object> Data
         {
@@ -75,6 +114,22 @@ namespace CardsAgainstIRC3.Game
 
         private List<Card> _whiteCardStack = new List<Card>();
         private List<Card> _blackCardStack = new List<Card>();
+
+        public IEnumerable<Card> WhiteCards
+        {
+            get
+            {
+                return _whiteCardStack;
+            }
+        }
+
+        public IEnumerable<Card> BlackCards
+        {
+            get
+            {
+                return _blackCardStack;
+            }
+        }
 
         private Dictionary<Guid, GameUser> _users = new Dictionary<Guid, GameUser>();
         private Dictionary<string, Guid> _userMap = new Dictionary<string, Guid>();
@@ -114,16 +169,36 @@ namespace CardsAgainstIRC3.Game
 
         public GameUser NextCzar()
         {
-            GameUser cz = _czarOrder[_currentCzar];
             _currentCzar = (_currentCzar + 1) % _czarOrder.Count;
-            return cz;
+            return _czarOrder[_currentCzar];
+        }
+
+        public delegate string PointsMetadata(GameUser user);
+
+        public string GetPoints(PointsMetadata metadata)
+        {
+            List<string> data = new List<string>();
+            foreach(var person in AllUsers)
+            {
+                data.Add(string.Format("{0}: {1}{2}", person.Nick, person.Points, metadata(person)));
+            }
+
+            return string.Join(" | ", data);
+        }
+
+        public void AddBot(string name, IBot bot)
+        {
+            var user = UserAdd("<" + name + ">");
+            user.Bot = bot;
+            user.CanChooseCards = true;
+            user.CanVote = false;
         }
 
         public void UpdateCzars()
         {
             for (int i = 0; i < _czarOrder.Count; i++)
             {
-                if (!_czarOrder[i].CanVote)
+                if (!_users.ContainsValue(_czarOrder[i]) || !_czarOrder[i].CanVote)
                 {
                     if (_currentCzar >= i && _currentCzar > 0)
                         _currentCzar--;
@@ -140,14 +215,14 @@ namespace CardsAgainstIRC3.Game
 
         public void AddCardSet(ICardSet set)
         {
-            _cardSets.Add(set);
+            CardSets.Add(set);
             _whiteCardStack.AddRange(set.WhiteCards);
             _blackCardStack.AddRange(set.BlackCards);
         }
 
         public void RemoveCardSet(ICardSet set)
         {
-            _cardSets.Remove(set);
+            CardSets.Remove(set);
             _whiteCardStack.RemoveAll(a => set.WhiteCards.Contains(a));
             _blackCardStack.RemoveAll(a => set.BlackCards.Contains(a));
         }
@@ -196,7 +271,7 @@ namespace CardsAgainstIRC3.Game
             _blackCardStack.Clear();
             _userMap.Clear();
             _users.Clear();
-            _cardSets.Clear();
+            CardSets.Clear();
             Data.Clear();
         }
 
@@ -279,6 +354,9 @@ namespace CardsAgainstIRC3.Game
             if (user == null)
                 return;
 
+            _userMap.Remove(nick);
+            _users.Remove(user.Guid);
+
             _log.Info("{0} just quit!");
         }
 
@@ -300,12 +378,22 @@ namespace CardsAgainstIRC3.Game
                     renameUser(msg.Origin.Nick, msg.Arguments[1]);
                     break;
                 case "QUIT":
-                    UserQuit(msg.Origin.Nick);
+                    if (!_userMap.ContainsKey(msg.Origin.Nick))
+                        break;
+                    if (CurrentState != null)
+                        CurrentState.UserLeft(Resolve(msg.Origin));
+                    else
+                        UserQuit(msg.Origin.Nick);
                     break;
                 case "PART":
                     if (msg.Arguments[0] != Channel)
                         break;
-                    UserQuit(msg.Origin.Nick);
+                    if (!_userMap.ContainsKey(msg.Origin.Nick))
+                        break;
+                    if (CurrentState != null)
+                        CurrentState.UserLeft(Resolve(msg.Origin));
+                    else
+                        UserQuit(msg.Origin.Nick);
                     break;
                 case "PRIVMSG":
                 case "NOTICE":

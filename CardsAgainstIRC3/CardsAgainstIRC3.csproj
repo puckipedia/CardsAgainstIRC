@@ -51,7 +51,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Game\Bots\BotAttribute.cs" />
+    <Compile Include="Game\Bots\Rando.cs" />
     <Compile Include="Game\Card.cs" />
+    <Compile Include="Game\CardSets\CardCast.cs" />
+    <Compile Include="Game\CardSets\CardSetAttribute.cs" />
+    <Compile Include="Game\CardSets\HitlersTesticleCardSet.cs" />
     <Compile Include="Game\ICardSet.cs" />
     <Compile Include="Game\GameManager.cs" />
     <Compile Include="Game\GameOutput.cs" />

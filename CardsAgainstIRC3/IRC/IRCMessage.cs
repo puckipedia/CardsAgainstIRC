@@ -90,5 +90,28 @@ namespace CardsAgainstIRC3
 
             Arguments = arguments.ToArray();
         }
+
+        public override string ToString()
+        {
+            StringBuilder builder = new StringBuilder();
+            if (Origin.Nick != null)
+            {
+                builder.Append(":");
+                builder.Append(Origin.ToString());
+                builder.Append(" ");
+            }
+
+            builder.Append(Command);
+
+            foreach(var argument in Arguments)
+            {
+                builder.Append(" ");
+                if (argument[0] == ':' || argument.Contains(" "))
+                    builder.Append(":");
+                builder.Append(argument);
+            }
+
+            return builder.ToString();
+        }
     }
 }
