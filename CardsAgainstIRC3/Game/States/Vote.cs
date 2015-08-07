@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace CardsAgainstIRC3.Game.States
 {
 
-    public class VoteState : BaseState
+    public class Vote : Base
     {
-        public VoteState(GameManager manager)
+        public Vote(GameManager manager)
             : base(manager)
         { }
 
@@ -64,7 +64,7 @@ namespace CardsAgainstIRC3.Game.States
                         Manager.Reset();
                     }
                     else
-                        Manager.StartState(new ChoosingCardsState(Manager));
+                        Manager.StartState(new ChoosingCards(Manager));
                 }
             }
             catch (Exception)

@@ -8,9 +8,9 @@ namespace CardsAgainstIRC3.Game.States
 {
 
 
-    public class BaseState : State
+    public class Base : State
     {
-        public BaseState(GameManager manager)
+        public Base(GameManager manager)
             : base(manager)
         { }
 

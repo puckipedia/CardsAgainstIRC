@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace CardsAgainstIRC3.Game.States
 {
-    public class InactiveState : State
+    public class Inactive : State
     {
-        public InactiveState(GameManager manager)
+        public Inactive(GameManager manager)
             : base(manager)
         { }
 
@@ -21,7 +21,7 @@ namespace CardsAgainstIRC3.Game.States
             started.CanChooseCards = started.CanVote = true;
             Manager.UpdateCzars();
             Manager.Data["started"] = started;
-            Manager.StartState(new WaitForJoinState(Manager));
+            Manager.StartState(new WaitForJoin(Manager));
         }
     }
 }

@@ -62,11 +62,11 @@
     <Compile Include="Game\GameOutput.cs" />
     <Compile Include="Game\IBot.cs" />
     <Compile Include="Game\IState.cs" />
-    <Compile Include="Game\States\BaseState.cs" />
-    <Compile Include="Game\States\ChoosingCardsState.cs" />
-    <Compile Include="Game\States\InactiveState.cs" />
-    <Compile Include="Game\States\VoteState.cs" />
-    <Compile Include="Game\States\WaitForJoinState.cs" />
+    <Compile Include="Game\States\Base.cs" />
+    <Compile Include="Game\States\ChoosingCards.cs" />
+    <Compile Include="Game\States\Inactive.cs" />
+    <Compile Include="Game\States\Vote.cs" />
+    <Compile Include="Game\States\WaitForJoin.cs" />
     <Compile Include="IRC\IRCMessage.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

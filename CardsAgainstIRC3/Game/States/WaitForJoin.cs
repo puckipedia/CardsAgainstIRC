@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace CardsAgainstIRC3.Game.States
 {
-    public class WaitForJoinState : BaseState
+    public class WaitForJoin : Base
     {
-        public WaitForJoinState(GameManager manager)
+        public WaitForJoin(GameManager manager)
             : base(manager)
         { }
 
@@ -28,7 +28,7 @@ namespace CardsAgainstIRC3.Game.States
 
             Manager.ShuffleCards();
             Manager.SendToAll("Game is starting...");
-            Manager.StartState(new ChoosingCardsState(Manager));
+            Manager.StartState(new ChoosingCards(Manager));
         }
     }
 }
