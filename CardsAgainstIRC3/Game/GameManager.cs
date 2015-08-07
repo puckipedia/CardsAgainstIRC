@@ -266,7 +266,7 @@ namespace CardsAgainstIRC3.Game
 
         public void Reset()
         {
-            StartState(new InactiveState(this));
+            StartState(new States.InactiveState(this));
             _whiteCardStack.Clear();
             _blackCardStack.Clear();
             _userMap.Clear();

@@ -62,6 +62,11 @@
     <Compile Include="Game\GameOutput.cs" />
     <Compile Include="Game\IBot.cs" />
     <Compile Include="Game\IState.cs" />
+    <Compile Include="Game\States\BaseState.cs" />
+    <Compile Include="Game\States\ChoosingCardsState.cs" />
+    <Compile Include="Game\States\InactiveState.cs" />
+    <Compile Include="Game\States\VoteState.cs" />
+    <Compile Include="Game\States\WaitForJoinState.cs" />
     <Compile Include="IRC\IRCMessage.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -76,9 +81,7 @@
     </None>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Game\State\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
