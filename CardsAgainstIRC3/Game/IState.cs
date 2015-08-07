@@ -30,7 +30,7 @@ namespace CardsAgainstIRC3.Game
             private set;
         }
 
-        public delegate void CommandDelegate(GameUser user, IEnumerable<string> arguments);
+        public delegate void CommandDelegate(string user, IEnumerable<string> arguments);
 
         private Dictionary<string, CommandDelegate> _commands = new Dictionary<string, CommandDelegate>();
 
@@ -62,15 +62,21 @@ namespace CardsAgainstIRC3.Game
             if (!_commands.ContainsKey(command))
                 return false;
 
-            _commands[command](Manager.Resolve(nick), arguments);
+            _commands[command](nick, arguments);
 
             return true;
         }
 
         [Command("!state")]
-        public void StateCommand(GameUser user, IEnumerable<string> args)
+        public void StateCommand(string user, IEnumerable<string> args)
         {
             Manager.SendPrivate(user, "Current state class is {0}", this.GetType());
+        }
+
+        [Command("!kill")]
+        public void KillCommand(string user, IEnumerable<string> args)
+        {
+            Manager.Reset();
         }
     }
 
@@ -90,7 +96,7 @@ namespace CardsAgainstIRC3.Game
         }
 
         [Command("!log")]
-        public void LogCommand(GameUser user, IEnumerable<string> str)
+        public void LogCommand(string user, IEnumerable<string> str)
         {
             logger.Trace(string.Join("|", str));
         }
@@ -107,7 +113,16 @@ namespace CardsAgainstIRC3.Game
         public WaitForJoinState(GameManager manager)
             : base(manager)
         { }
-
+        [Command("!start")]
+        public void StartCommand(string nick, IEnumerable<string> arguments)
+        {
+            if (Manager.Users < 3)
+            {
+                Manager.SendPublic(nick, "We don't have enough players!");
+                return;
+            }
+            else if ()
+        }
     }
 
 public class InactiveState : State
@@ -116,19 +131,14 @@ public class InactiveState : State
             : base(manager)
         { }
 
-        internal override bool Command(string nick, string command, IEnumerable<string> arguments)
+
+        [Command("!start")]
+        public void StartCommand(string nick, IEnumerable<string> arguments)
         {
-            if (command == "!start")
-            {
-                Manager.SendToAll("{0} started a game! | send !join to join!", nick);
-                var started = Manager.UserAdd(nick);
-                Manager.Data["started"] = started;
-                Manager.StartState(new WaitForJoinState(Manager));
-                return true;
-            }
-
-            return base.Command(nick, command, arguments);
+            Manager.SendToAll("{0} started a game! | send !join to join!", nick);
+            var started = Manager.UserAdd(nick);
+            Manager.Data["started"] = started;
+            Manager.StartState(new WaitForJoinState(Manager));
         }
-
     }
 }

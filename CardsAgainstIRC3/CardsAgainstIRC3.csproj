@@ -52,6 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Game\Card.cs" />
+    <Compile Include="Game\ICardSet.cs" />
     <Compile Include="Game\GameManager.cs" />
     <Compile Include="Game\GameOutput.cs" />
     <Compile Include="Game\IBot.cs" />

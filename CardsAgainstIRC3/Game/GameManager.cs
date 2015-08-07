@@ -37,6 +37,11 @@ namespace CardsAgainstIRC3.Game
         public Guid Guid = Guid.NewGuid();
         public Card?[] Cards = new Card?[10];
         public int[] ChosenCards = new int[0];
+        public int Points = 0;
+        public bool CanVote = false;
+        public bool HasVoted = false;
+        public bool HasChosenCards = false;
+        public bool CanChooseCards = false;
 
         public IBot Bot = null;
     }
@@ -45,17 +50,34 @@ namespace CardsAgainstIRC3.Game
     {
         public GameManager(GameMain main, GameOutput output, string Channel)
         {
-            this.main = main;
-            this.output = output;
+            this._main = main;
+            this._output = output;
             this.Channel = Channel;
-            logger = LogManager.GetLogger("GameManager<" + Channel + ">");
+            _log = LogManager.GetLogger("GameManager<" + Channel + ">");
 
             Reset();
         }
 
-        private Logger logger;
-        private GameMain main;
-        private GameOutput output;
+        private Logger _log;
+        private GameMain _main;
+        private GameOutput _output;
+        private Random _random = new Random();
+
+        private List<ICardSet> _cardSets = new List<ICardSet>();
+        private List<GameUser> _czarOrder = new List<GameUser>();
+        private int _currentCzar = 0;
+
+        public Dictionary<string, object> Data
+        {
+            get;
+            private set;
+        } = new Dictionary<string, object>();
+
+        private List<Card> _whiteCardStack = new List<Card>();
+        private List<Card> _blackCardStack = new List<Card>();
+
+        private Dictionary<Guid, GameUser> _users = new Dictionary<Guid, GameUser>();
+        private Dictionary<string, Guid> _userMap = new Dictionary<string, Guid>();
 
         public string Channel
         {
@@ -69,24 +91,103 @@ namespace CardsAgainstIRC3.Game
             private set;
         }
 
+        public int Users
+        {
+            get
+            {
+                return _users.Count;
+            }
+        }
+
+        public IEnumerable<GameUser> AllUsers
+        {
+            get
+            {
+                return _users.Values;
+            }
+        }
+
+        public GameUser CurrentCzar()
+        {
+            return _czarOrder[_currentCzar];
+        }
+
+        public GameUser NextCzar()
+        {
+            GameUser cz = _czarOrder[_currentCzar];
+            _currentCzar = (_currentCzar + 1) % _czarOrder.Count;
+            return cz;
+        }
+
+        public void UpdateCzars()
+        {
+            for (int i = 0; i < _czarOrder.Count; i++)
+            {
+                if (!_czarOrder[i].CanVote)
+                {
+                    if (_currentCzar >= i && _currentCzar > 0)
+                        _currentCzar--;
+                    _czarOrder.RemoveAt(i--);
+                }
+            }
+
+            foreach (var person in AllUsers)
+            {
+                if (person.CanVote && !_czarOrder.Contains(person))
+                    _czarOrder.Add(person);
+            }
+        }
+
+        public void AddCardSet(ICardSet set)
+        {
+            _cardSets.Add(set);
+            _whiteCardStack.AddRange(set.WhiteCards);
+            _blackCardStack.AddRange(set.BlackCards);
+        }
+
+        public void RemoveCardSet(ICardSet set)
+        {
+            _cardSets.Remove(set);
+            _whiteCardStack.RemoveAll(a => set.WhiteCards.Contains(a));
+            _blackCardStack.RemoveAll(a => set.BlackCards.Contains(a));
+        }
+
+        public void ShuffleCards()
+        {
+            _whiteCardStack = _whiteCardStack.OrderBy(a => _random.Next()).ToList();
+            _blackCardStack = _blackCardStack.OrderBy(a => _random.Next()).ToList();
+        }
+
+
         public void SendToAll(string Message, params object[] args)
         {
-            output.SendToAll(Channel, Message, args);
+            _output.SendToAll(Channel, Message, args);
         }
 
         public void SendPublic(GameUser user, string Message, params object[] args)
         {
             if (user.Bot != null)
                 return;
-            output.SendPublic(Channel, user.Nick, Message, args);
+            _output.SendPublic(Channel, user.Nick, Message, args);
         }
 
         public void SendPrivate(GameUser user, string Message, params object[] args)
         {
             if (user.Bot != null)
                 return;
-            output.SendPrivate(Channel, user.Nick, Message, args);
+            _output.SendPrivate(Channel, user.Nick, Message, args);
         }
+
+        public void SendPublic(string user, string Message, params object[] args)
+        {
+            _output.SendPublic(Channel, user, Message, args);
+        }
+
+        public void SendPrivate(string user, string Message, params object[] args)
+        {
+            _output.SendPrivate(Channel, user, Message, args);
+        }
+
 
         public void Reset()
         {
@@ -95,24 +196,27 @@ namespace CardsAgainstIRC3.Game
             _blackCardStack.Clear();
             _userMap.Clear();
             _users.Clear();
+            _cardSets.Clear();
             Data.Clear();
         }
 
-        public Dictionary<string, object> Data
+        public Card TakeWhiteCard()
+        {
+            Card card = _whiteCardStack[0];
+            _whiteCardStack.RemoveAt(0);
+            return card;
+        }
+
+        public Card CurrentBlackCard
         {
             get;
             private set;
-        } = new Dictionary<string, object>();
-        
-        private Stack<Card> _whiteCardStack = new Stack<Card>();
-        private Stack<Card> _blackCardStack = new Stack<Card>();
+        } = new Card();
 
-        private Dictionary<Guid, GameUser> _users = new Dictionary<Guid, GameUser>();
-        private Dictionary<string, Guid> _userMap = new Dictionary<string, Guid>();
-
-        public Card TakeWhiteCard()
+        public void NewBlackCard()
         {
-            return _whiteCardStack.Pop();
+            CurrentBlackCard = _blackCardStack[0];
+            _blackCardStack.RemoveAt(0);
         }
 
         public IEnumerable<Card> TakeWhiteCards(int count = 1)
@@ -127,13 +231,6 @@ namespace CardsAgainstIRC3.Game
                 CurrentState.Deactivate();
             CurrentState = state;
             state.Activate();
-        }
-        
-        private enum CommandParserState
-        {
-            OutsideString,
-            InDoubleString,
-            InSingleString,
         }
 
         public GameUser Resolve(IRCMessageOrigin origin)
@@ -173,7 +270,7 @@ namespace CardsAgainstIRC3.Game
             _userMap[to] = user.Guid;
             _userMap.Remove(from);
 
-            logger.Info("{0} just changed name to {1}", from, to);
+            _log.Info("{0} just changed name to {1}", from, to);
         }
 
         public void UserQuit(string nick)
@@ -182,7 +279,7 @@ namespace CardsAgainstIRC3.Game
             if (user == null)
                 return;
 
-            logger.Info("{0} just quit!");
+            _log.Info("{0} just quit!");
         }
 
         public GameUser UserAdd(string nick)
@@ -212,7 +309,7 @@ namespace CardsAgainstIRC3.Game
                     break;
                 case "PRIVMSG":
                 case "NOTICE":
-                    if ((msg.Arguments[0] == main.BotName && _userMap.ContainsKey(msg.Origin.Nick)) || msg.Arguments[0] == Channel)
+                    if ((msg.Arguments[0] == _main.BotName && _userMap.ContainsKey(msg.Origin.Nick)) || msg.Arguments[0] == Channel)
                     {
                         if (msg.Arguments[1][0] == '\u200B')
                             break; // ignore ZWSP
@@ -221,7 +318,7 @@ namespace CardsAgainstIRC3.Game
                         var command = parsed_data.First();
                         if (CurrentState == null)
                         {
-                            logger.Error("Eek! CurrentState is null! This shouldn't happen D:");
+                            _log.Error("Eek! CurrentState is null! This shouldn't happen D:");
                             break;
                         }
 
@@ -230,6 +327,14 @@ namespace CardsAgainstIRC3.Game
                     break;
             }
             return false;
+        }
+
+
+        private enum CommandParserState
+        {
+            OutsideString,
+            InDoubleString,
+            InSingleString,
         }
 
         public static IEnumerable<string> ParseCommandString(string command)
