@@ -69,6 +69,7 @@ namespace CardsAgainstIRC3.Game
         public bool HasChosenCards = false;
         public bool CanChooseCards = false;
         public bool WantsToLeave = false;
+        public string JoinReason = "";
 
         public IBot Bot = null;
     }

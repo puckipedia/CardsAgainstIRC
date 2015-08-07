@@ -62,7 +62,7 @@
     <Compile Include="Game\GameManager.cs" />
     <Compile Include="Game\GameOutput.cs" />
     <Compile Include="Game\IBot.cs" />
-    <Compile Include="Game\IState.cs" />
+    <Compile Include="Game\State.cs" />
     <Compile Include="Game\States\Base.cs" />
     <Compile Include="Game\States\ChoosingCards.cs" />
     <Compile Include="Game\States\Inactive.cs" />

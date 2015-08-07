@@ -88,10 +88,18 @@ namespace CardsAgainstIRC3.Game.States
         [Command("!join")]
         public void JoinCommand(string nick, IEnumerable<string> arguments)
         {
-            var player = Manager.UserAdd(nick);
-            player.CanChooseCards = player.CanVote = true;
-            Manager.UpdateCzars();
-            Manager.SendPublic(nick, "You joined!");
+
+            GameUser player = Manager.Resolve(nick);
+            if (player == null)
+            {
+                player = Manager.UserAdd(nick);
+                player.CanChooseCards = player.CanVote = true;
+                Manager.UpdateCzars();
+            }
+            
+            if (arguments.Count() > 0)
+                player.JoinReason = " " + string.Join(" ", arguments);
+            Manager.SendPublic(nick, "You joined{0}!", player.JoinReason);
         }
 
         [Command("!leave")]
@@ -105,12 +113,12 @@ namespace CardsAgainstIRC3.Game.States
             if (UserLeft(player))
             {
                 Manager.UserQuit(nick);
-                Manager.SendPublic(nick, "You left!");
+                Manager.SendPublic(nick, "You left{0}!", player.JoinReason);
             }
             else
             {
                 player.WantsToLeave = true;
-                Manager.SendPublic(player, "You will leave once this round ends!");
+                Manager.SendPublic(player, "You will leave {0}once this round ends!", player.JoinReason);
             }
         }
 
