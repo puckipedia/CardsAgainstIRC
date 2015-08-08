@@ -31,7 +31,7 @@ namespace CardsAgainstIRC3.Game.States
             Votes = CzarOrder.Where(a => a.Bot == null).ToDictionary(a => a.Guid, a => -2);
 
             int i = 0;
-            Manager.SendToAll("Everyone has chosen! The card sets are: ({0} - your time to choose)", string.Join(", ", CzarOrder.Select(a => a.Nick)));
+            Manager.SendToAll("Everyone has chosen! The card sets are: ({0} - your time to choose)", string.Join(", ", CzarOrder.Where(a => a.Bot == null).Select(a => a.Nick)));
 
             foreach (var or in CzarOrder)
             {
