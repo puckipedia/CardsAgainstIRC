@@ -541,7 +541,8 @@ namespace CardsAgainstIRC3.Game
                     state = CommandParserState.InSingleString;
                 else if (state == CommandParserState.OutsideString && chr == ' ')
                 {
-                    yield return storage.ToString();
+                    if (storage.Length > 0)
+                        yield return storage.ToString();
                     storage.Clear();
                 }
                 else
