@@ -24,14 +24,24 @@ namespace CardsAgainstIRC3
             }
             else if (data.Contains("."))
             {
-                Nick = User = "";
+                Nick = User = null;
                 Host = data;
             }
             else
             {
-                User = Host = "";
+                User = Host = null;
                 Nick = data;
             }
+        }
+
+        public override string ToString()
+        {
+            if (Host != null && User == null && Nick == null)
+                return Host;
+            if (Nick != null && User == null && Host == null)
+                return Nick;
+
+            return string.Format("{0}!{1}@{2}", Nick, User, Host);
         }
     }
 
@@ -94,7 +104,7 @@ namespace CardsAgainstIRC3
         public override string ToString()
         {
             StringBuilder builder = new StringBuilder();
-            if (Origin.Nick != null)
+            if (Origin.Nick != null || Origin.Host != null)
             {
                 builder.Append(":");
                 builder.Append(Origin.ToString());
