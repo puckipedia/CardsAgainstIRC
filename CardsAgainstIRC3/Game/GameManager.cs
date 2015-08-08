@@ -441,6 +441,16 @@ namespace CardsAgainstIRC3.Game
                     else
                         UserQuit(msg.Origin.Nick);
                     break;
+                case "KICK":
+                    if (msg.Arguments[0] != Channel)
+                        break;
+                    if (!_userMap.ContainsKey(msg.Arguments[1]))
+                        break;
+                    if (CurrentState != null)
+                        CurrentState.UserLeft(Resolve(msg.Arguments[1]));
+                    else
+                        UserQuit(msg.Arguments[1]);
+                    break;
                 case "PRIVMSG":
                 case "NOTICE":
                     if ((msg.Arguments[0] == _main.BotName && _userMap.ContainsKey(msg.Origin.Nick)) || msg.Arguments[0] == Channel)
