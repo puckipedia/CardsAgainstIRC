@@ -7,7 +7,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CardsAgainstIRC3.Game.CardSets
+namespace CardsAgainstIRC3.Game.DeckTypes
 {
     [DeckType("cardcast")]
     class CardCast : IDeckType
