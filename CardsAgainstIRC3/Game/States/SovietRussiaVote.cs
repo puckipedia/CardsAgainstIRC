@@ -140,9 +140,12 @@ namespace CardsAgainstIRC3.Game.States
             var winners = RunoffVoting().Select(a => Manager.Resolve(a));
 
             if (winners.Count() == 1)
+            {
                 Manager.SendToAll("And the winner is... {0}!", winners.First().Nick);
+                Manager.SendToAll(Manager.CurrentBlackCard.Representation(CardSets[winners.First().Guid]));
+            }
             else
-                Manager.SendToAll("And the winners are... {0}!", string.Join(", ", winners.Select(a => a.Nick)));
+                Manager.SendToAll("And the winners are... {0}!", string.Join(", ", winners.Select(a => a.Nick + " (" + CzarOrder.IndexOf(a) + ")")));
 
             foreach (var winner in winners)
                 winner.Points++;
