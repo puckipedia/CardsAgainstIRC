@@ -147,7 +147,7 @@ namespace CardsAgainstIRC3.Game.States
         [Command("!deck.add")]
         public void DeckAddCommand(string nick, IEnumerable<string> arguments)
         {
-            if (arguments.Count() < 1 || arguments.Count() > 2)
+            if (arguments.Count() < 1)
             {
                 Manager.SendPrivate(nick, "Usage: !deck.add name [arguments...]");
                 return;
