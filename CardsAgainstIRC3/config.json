@@ -8,13 +8,9 @@
     "port": 6667
   },
 
-  "channels": [ "##ingsoc" ],
+  "channels": [ ],
 
   "cardsets": {
-    "default": [
-      [ "cardcast", "PXWKC" ],
-      [ "cardcast", "A5DCM" ],
-      [ "cardcast", "759D2" ]
-    ]
+    "default": [ ]
   }
 }
