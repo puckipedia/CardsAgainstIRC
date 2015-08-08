@@ -1,0 +1,5 @@
+language: csharp
+solution: CardsAgainstIRC3.sln
+script:
+  - xbuild /p:Configuration=Release CardsAgainstIRC3.sln
+  - mono ./testrunner/NUnit.Runners.*/tools/nunit-console.exe ./CardsAgainstIRC3.Tests/bin/Release/CardsAgainstIRC3.Tests.dll
