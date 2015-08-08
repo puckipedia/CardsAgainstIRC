@@ -22,7 +22,7 @@ namespace CardsAgainstIRC3.Game.States
             }
             else if (Manager.WhiteCards.Count() == 0 || Manager.BlackCards.Count() == 0)
             {
-                Manager.SendPublic(nick, "Not evnough cards to start the game!");
+                Manager.SendPublic(nick, "Not enough cards to start the game!");
                 return;
             }
 
