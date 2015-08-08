@@ -93,8 +93,8 @@ namespace CardsAgainstIRC3.Game
             if (DeckTypes == null)
             {
                 DeckTypes = this.GetType().Assembly.GetTypes()
-                    .Where(a => a.GetCustomAttributes(typeof(CardSets.DeckTypeAttribute), false).Length > 0)
-                    .ToDictionary(a => (a.GetCustomAttributes(typeof(CardSets.DeckTypeAttribute), false).First() as CardSets.DeckTypeAttribute).Name, a => a);
+                    .Where(a => a.GetCustomAttributes(typeof(DeckTypes.DeckTypeAttribute), false).Length > 0)
+                    .ToDictionary(a => (a.GetCustomAttributes(typeof(DeckTypes.DeckTypeAttribute), false).First() as DeckTypes.DeckTypeAttribute).Name, a => a);
             }
 
             Reset();
