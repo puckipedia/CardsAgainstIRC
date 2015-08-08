@@ -40,11 +40,14 @@ namespace CardsAgainstIRC3.Game.States
             {
                 person.HasChosenCards = person.HasVoted = false;
 
-                if (person.Bot == null && person.CanChooseCards && person != czar)
+                if (person.Bot == null && person.CanChooseCards && (person != czar || Manager.Mode == GameManager.GameMode.Czar))
                     WaitingOnUsers.Add(person);
             }
 
-            Manager.SendToAll("New round! {0} is czar! {1}, choose your cards!", czar.Nick, string.Join(", ", WaitingOnUsers.Select(a => a.Nick)));
+            if (Manager.Mode == GameManager.GameMode.Czar)
+                Manager.SendToAll("New round! {0} is czar! {1}, choose your cards!", czar.Nick, string.Join(", ", WaitingOnUsers.Select(a => a.Nick)));
+            else
+                Manager.SendToAll("New round! {0}, choose your cards!", string.Join(", ", WaitingOnUsers.Select(a => a.Nick)));
             Manager.SendToAll("Current Card: {0}", Manager.CurrentBlackCard.Representation());
 
             foreach (var user in WaitingOnUsers)
@@ -67,7 +70,7 @@ namespace CardsAgainstIRC3.Game.States
                 CheckReady();
             }
 
-            if (user == Manager.CurrentCzar())
+            if (user == Manager.CurrentCzar() && Manager.Mode == GameManager.GameMode.Czar)
             {
                 Manager.SendToAll("Czar left! Discarding round...");
                 foreach(var person in ChosenUsers)
