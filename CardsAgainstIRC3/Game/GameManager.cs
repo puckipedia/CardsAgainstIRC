@@ -374,9 +374,6 @@ namespace CardsAgainstIRC3.Game
 
         public GameUser Resolve(Guid guid)
         {
-            if (guid == null)
-                return null;
-
             if (!_users.ContainsKey(guid))
                 return null;
 
