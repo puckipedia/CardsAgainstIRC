@@ -40,7 +40,7 @@ namespace CardsAgainstIRC3.Game.States
             {
                 person.HasChosenCards = person.HasVoted = false;
 
-                if (person.Bot == null && person.CanChooseCards && (person != czar || Manager.Mode == GameManager.GameMode.Czar))
+                if (person.Bot == null && person.CanChooseCards && (person != czar || Manager.Mode == GameManager.GameMode.SovietRussia))
                     WaitingOnUsers.Add(person);
             }
 
