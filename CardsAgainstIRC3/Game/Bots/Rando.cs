@@ -15,9 +15,20 @@ namespace CardsAgainstIRC3.Game.Bots
             private set;
         }
 
+        public GameUser User
+        {
+            get;
+            private set;
+        }
+
         public Rando(GameManager manager)
         {
             Manager = manager;
+        }
+
+        public void RegisteredToUser(GameUser user)
+        {
+            User = user;
         }
 
         public Card[] ResponseToCard(Card blackCard)

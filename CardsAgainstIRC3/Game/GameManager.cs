@@ -98,6 +98,7 @@ namespace CardsAgainstIRC3.Game
             }
 
             Reset();
+            _output.SendToAll(Channel, "(Active.)");
         }
 
         public Dictionary<string, List<List<string>>> DefaultSets
@@ -224,6 +225,7 @@ namespace CardsAgainstIRC3.Game
         {
             var user = UserAdd("<" + name + ">");
             user.Bot = bot;
+            bot.LinkedToUser(user);
             user.CanChooseCards = true;
             user.CanVote = false;
         }

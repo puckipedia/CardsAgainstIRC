@@ -8,6 +8,7 @@ namespace CardsAgainstIRC3.Game
 {
     public interface IBot
     {
+        void LinkedToUser(GameUser user);
         Card[] ResponseToCard(Card blackCard);
     }
 }
