@@ -321,6 +321,7 @@ namespace CardsAgainstIRC3.Game
             _users.Clear();
             CardSets.Clear();
             Data.Clear();
+            Limit = 10;
         }
 
         public Card TakeWhiteCard()
