@@ -192,9 +192,10 @@ namespace CardsAgainstIRC3.Game.States
                 Manager.CardSets.RemoveAll(a => toremove.Contains(a));
                 Manager.SendPublic(nick, "Removed card sets!");
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 Manager.SendPublic(nick, "Failed to remove {0} card sets!", arguments.Count());
+                Console.WriteLine(e);
             }
         }
 
@@ -247,9 +248,10 @@ namespace CardsAgainstIRC3.Game.States
                     Manager.SendPublic(nick, "Added card set {0}", def.Item1);
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 Manager.SendPublic(nick, "Failed to add defaults");
+                Console.WriteLine(e);
             }
         }
     }
