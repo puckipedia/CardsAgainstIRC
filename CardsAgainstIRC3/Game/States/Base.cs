@@ -254,5 +254,31 @@ namespace CardsAgainstIRC3.Game.States
                 Console.WriteLine(e);
             }
         }
+
+        [Command("!mode")]
+        public void ModeCommand(string nick, IEnumerable<string> arguments)
+        {
+            if (arguments.Count() != 1)
+            {
+                Manager.SendPublic(nick, "Current mode: {0}", Manager.Mode.ToString());
+                return;
+            }
+
+            string mode = arguments.First().ToLowerInvariant();
+            if (mode == "czar")
+            {
+                Manager.Mode = GameManager.GameMode.Czar;
+                Manager.SendPublic(nick, "Mode set to Czar!");
+            }
+            else if (mode == "soviet")
+            {
+                Manager.Mode = GameManager.GameMode.SovietRussia;
+                Manager.SendPublic(nick, "Mode set to Soviet Russia!");
+            }
+            else
+            {
+                Manager.SendPrivate(nick, "Usage: !mode {czar,soviet}");
+            }
+        }
     }
 }

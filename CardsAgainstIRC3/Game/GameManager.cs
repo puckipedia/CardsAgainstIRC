@@ -76,6 +76,18 @@ namespace CardsAgainstIRC3.Game
 
     public class GameManager
     {
+        public enum GameMode
+        {
+            Czar,
+            SovietRussia
+        }
+
+        public GameMode Mode
+        {
+            get;
+            set;
+        } = GameMode.Czar;
+
         private GameManager(GameMain main, GameOutput output, string Channel)
         {
             this._main = main;
@@ -422,7 +434,7 @@ namespace CardsAgainstIRC3.Game
             switch (msg.Command)
             {
                 case "NICK":
-                    renameUser(msg.Origin.Nick, msg.Arguments[1]);
+                    renameUser(msg.Origin.Nick, msg.Arguments[0]);
                     break;
                 case "QUIT":
                     if (!_userMap.ContainsKey(msg.Origin.Nick))

@@ -108,8 +108,9 @@
     <Compile Include="Game\State.cs" />
     <Compile Include="Game\States\Base.cs" />
     <Compile Include="Game\States\ChoosingCards.cs" />
+    <Compile Include="Game\States\SovietRussiaVote.cs" />
     <Compile Include="Game\States\Inactive.cs" />
-    <Compile Include="Game\States\Vote.cs" />
+    <Compile Include="Game\States\CzarVote.cs" />
     <Compile Include="Game\States\WaitForJoin.cs" />
     <Compile Include="IRC\IRCMessage.cs" />
     <Compile Include="Program.cs" />

@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace CardsAgainstIRC3.Game.States
 {
 
-    public class Vote : Base
+    public class CzarVote : Base
     {
-        public Vote(GameManager manager)
+        public CzarVote(GameManager manager)
             : base(manager, 60)
         { }
 

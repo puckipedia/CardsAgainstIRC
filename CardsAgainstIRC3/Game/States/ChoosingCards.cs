@@ -86,14 +86,20 @@ namespace CardsAgainstIRC3.Game.States
             foreach (var person in WaitingOnUsers)
                 person.Points--;
 
-            Manager.StartState(new Vote(Manager));
+            if (Manager.Mode == GameManager.GameMode.Czar)
+                Manager.StartState(new CzarVote(Manager));
+            else
+                Manager.StartState(new SovietRussiaVote(Manager));
         }
 
         private void CheckReady()
         {
             if (WaitingOnUsers.Count == 0)
             {
-                Manager.StartState(new Vote(Manager));
+                if (Manager.Mode == GameManager.GameMode.Czar)
+                    Manager.StartState(new CzarVote(Manager));
+                else
+                    Manager.StartState(new SovietRussiaVote(Manager));  
             }
         }
 
