@@ -15,7 +15,7 @@ namespace CardsAgainstIRC3.Game.States
 
         public List<GameUser> CzarOrder = null;
         public Dictionary<Guid, Card[]> CardSets = new Dictionary<Guid, Card[]>();
-        public Dictionary<Guid, int> Votes = new Dictionary<Guid, int>();
+        public Dictionary<Guid, List<int>> Votes = new Dictionary<Guid, List<int>>();
         public Random Random = new Random();
 
         public override void Activate()
@@ -28,7 +28,7 @@ namespace CardsAgainstIRC3.Game.States
                 return;
             }
 
-            Votes = CzarOrder.Where(a => a.Bot == null).ToDictionary(a => a.Guid, a => -2);
+            Votes = CzarOrder.Where(a => a.Bot == null).ToDictionary(a => a.Guid, a => (List<int>) null);
 
             int i = 0;
             Manager.SendToAll("Everyone has chosen! The card sets are: ({0} - your time to choose)", string.Join(", ", CzarOrder.Where(a => a.Bot == null).Select(a => a.Nick)));
@@ -46,9 +46,32 @@ namespace CardsAgainstIRC3.Game.States
             }
         }
 
+        public List<Guid> RunoffVoting()
+        {
+            List<Guid> Dismissed = new List<Guid>();
+            while (true)
+            {
+                var count = TallyVotes(Dismissed);
+                if (count.Count() == 0)
+                    return CzarOrder.Where(a => !Dismissed.Contains(a.Guid)).Select(a => a.Guid).ToList();
+                var lowest = count.Min(a => a.Value);
+                if (lowest == count.Max(a => a.Value))
+                    return count.Keys.ToList();
+                Dismissed.AddRange(count.Where(a => a.Value == lowest).Select(a => a.Key));
+            }
+        }
+
+        public Dictionary<Guid, int> TallyVotes(List<Guid> dismissed)
+        {
+            return Votes.Select(delegate(KeyValuePair<Guid, List<int>> a) {
+                var values = a.Value.SkipWhile(b => dismissed.Contains(CzarOrder[b].Guid));
+                return values.Count() == 0 ? -1 : values.First();
+                }).Where(a => a != -1).GroupBy(a => a).ToDictionary(a => CzarOrder[a.Key].Guid, a => a.Count());
+        }
+
         public override void TimeoutReached()
         {
-            if (Votes.Count(a => a.Value > -2) == 0)
+            if (Votes.Count(a => a.Value != null) == 0)
             {
                 Manager.SendToAll("Timeout has been reached! Noone won...");
                 Manager.SendToAll("Points: {0}", Manager.GetPoints(a => CzarOrder.Contains(a) ? " (" + CzarOrder.IndexOf(a) + ")" : ""));
@@ -65,7 +88,7 @@ namespace CardsAgainstIRC3.Game.States
         [Command("!status")]
         public void StatusCommand(string nick, IEnumerable<string> arguments)
         {
-            Manager.SendPublic(nick, "Waiting for czars {0} to choose...", string.Join(", ", Votes.Where(a => a.Value == -2).Select(a => Manager.Resolve(a.Key).Nick)));
+            Manager.SendPublic(nick, "Waiting for czars {0} to choose...", string.Join(", ", Votes.Where(a => a.Value == null).Select(a => Manager.Resolve(a.Key).Nick)));
         }
 
         [Command("!card")]
@@ -80,12 +103,12 @@ namespace CardsAgainstIRC3.Game.States
 
             try
             {
-                int winner = int.Parse(arguments.First());
-                if (winner < 0 || winner >= CzarOrder.Count)
+                var order = arguments.Select(a => int.Parse(a));
+                if (order.Any(a => a < 0) || order.Any(a => a >= CzarOrder.Count))
                     Manager.SendPrivate(user, "Out of range!");
                 else
                 {
-                    Votes[user.Guid] = winner;
+                    Votes[user.Guid] = order.ToList();
                     SelectWinner();
                 }
             }
@@ -105,16 +128,17 @@ namespace CardsAgainstIRC3.Game.States
             if (!Votes.ContainsKey(user.Guid))
                 return;
 
-            Votes[user.Guid] = -1;
+            Votes[user.Guid] = new List<int>();
+            SelectWinner();
         }
 
         private void SelectWinner(bool over = false)
         {
-            if (Votes.Any(a => a.Value == -2) && !over)
+            if (Votes.Any(a => a.Value == null) && !over)
                 return;
 
-            var maxvalue = CzarOrder.Max(a => Votes.Count(b => b.Value > -1 && CzarOrder[b.Value] == a));
-            var winners = CzarOrder.Where(a => Votes.Count(b => b.Value > -1 && CzarOrder[b.Value] == a) == maxvalue);
+            var winners = RunoffVoting().Select(a => Manager.Resolve(a));
+
             if (winners.Count() == 1)
                 Manager.SendToAll("And the winner is... {0}!", winners.First().Nick);
             else
@@ -147,7 +171,7 @@ namespace CardsAgainstIRC3.Game.States
             if (!Votes.ContainsKey(user.Guid))
                 return false;
 
-            if (Votes[user.Guid] == -2)
+            if (Votes[user.Guid] == null)
                 Votes.Remove(user.Guid);
 
             SelectWinner();
