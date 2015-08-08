@@ -108,7 +108,7 @@ namespace CardsAgainstIRC3.Game.States
                     Manager.SendPrivate(user, "Out of range!");
                 else
                 {
-                    Votes[user.Guid] = order.ToList();
+                    Votes[user.Guid] = order.Where(a => CzarOrder[a] != user).ToList();
                     SelectWinner();
                 }
             }

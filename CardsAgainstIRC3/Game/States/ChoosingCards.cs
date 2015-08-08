@@ -10,7 +10,7 @@ namespace CardsAgainstIRC3.Game.States
     public class ChoosingCards : Base
     {
         public ChoosingCards(GameManager manager)
-            : base(manager)
+            : base(manager, 60)
         { }
 
         public List<GameUser> WaitingOnUsers = new List<GameUser>();
