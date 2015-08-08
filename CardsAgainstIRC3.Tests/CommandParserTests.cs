@@ -1,33 +1,23 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using CardsAgainstIRC3.Game;
+using System.Text;
+using System.Threading.Tasks;
+using NUnit.Framework;
 
 namespace CardsAgainstIRC3.Tests
 {
-    [TestClass]
+    [TestFixture]
     public class CommandParserTests
     {
-        [TestMethod]
-        public void ArgumentSplitting()
+        [Test(Description ="Tests if the command parser works properly with \"\" and ''")]
+        public void CommandParserSplitting()
         {
-            string to_parse = "test test1 test2";
-            var parsed = GameManager.ParseCommandString(to_parse);
-            Assert.AreEqual(to_parse, string.Join(" ", parsed));
-        }
+            string[] expected = new string[] { "test 1", "test 2", "test 3", "" };
+            string from = "test\" \"1 tes't '2 't'e's't\ 3 ";
+            string[] actual = Game.GameManager.ParseCommandString(from).ToArray();
 
-        [TestMethod]
-        public void QuoteHandling()
-        {
-            string to_parse = "te\"st 1\" \"test 2\" 'test '\"3\"'";
-            string[] expect = new string[] { "test 1", "test 2", "test 3" };
-            string[] actual = GameManager.ParseCommandString(to_parse).ToArray();
-
-            Assert.AreEqual(expect.Length, actual.Length);
-            for (int i = 0; i < expect.Length; i++)
-            {
-                Assert.AreEqual(expect[i], actual[i]);
-            }
+            Assert.AreEqual(string.Join("|", expected), string.Join("|", actual), "Parsing the command string failed!");
         }
     }
 }

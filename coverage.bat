@@ -1,0 +1,2 @@
+packages\OpenCover.4.6.166\tools\OpenCover.Console.exe -target:"packages\NUnit.Runners.2.6.4\tools\nunit-console.exe" -targetargs:"/nologo /noshadow CardsAgainstIRC3.Tests\bin\x64\Release\CardsAgainstIRC3.Tests.dll" -filter:"+[*]*" -register:user
+packages\ReportGenerator.2.1.8.0\tools\ReportGenerator.exe -reports:results.xml -targetdir:reportinfo
