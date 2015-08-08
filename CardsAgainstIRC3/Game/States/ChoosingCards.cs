@@ -97,6 +97,16 @@ namespace CardsAgainstIRC3.Game.States
             }
         }
 
+        [Command("!cards")]
+        public void CardsCommand(string nick, IEnumerable<string> arguments)
+        {
+            var user = Manager.Resolve(nick);
+            if (user == null)
+                return;
+
+            user.SendCards();
+        }
+
         [Command("!card")]
         public void CardCommand(string nick, IEnumerable<string> arguments)
         {

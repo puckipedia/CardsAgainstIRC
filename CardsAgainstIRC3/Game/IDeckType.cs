@@ -2,7 +2,7 @@
 
 namespace CardsAgainstIRC3.Game
 {
-    public interface ICardSet
+    public interface IDeckType
     {
         IEnumerable<Card> WhiteCards
         {

@@ -39,12 +39,12 @@ Then, you can either add bots or add cards.
 
 ## 2.a Adding bots
 CaIv3 has support for more complicated bots, and these are easy to write. To add a bot, you first need to need to bot type.
-To list the available bot types, type `!bots`. This will send a NOTICE with the bot types available. Normally, only `rando`, is available, a bot that chooses random cards and hopes to win that way.
-To add a bot, type `!addbot $id "$name"` (name is optional, and defaults to the bot type). To remove one, type `!removebot "$name"`. All active bots have `<>` around their names, to distinguish them from normal players.
+To list the available bot types, type `!bot.types`. This will send a NOTICE with the bot types available. Normally, only `rando`, is available, a bot that chooses random cards and hopes to win that way.
+To add a bot, type `!bot.add $id "$name"` (name is optional, and defaults to the bot type). To remove one, type `!bot.remove "$name"`. All active bots have `<>` around their names, to distinguish them from normal players.
 To list all players in the game, type `!users`.
 
 ## 2.b Adding cards
-At the moment, CaIv3 only has built-in support for [Cardcast](https://cardcastgame.com/) card sets. To add these, use `!addcards cardcast $DECK_ID`, e.g. `!addcards cardcast EU6CJ`.
+At the moment, CaIv3 only has built-in support for [Cardcast](https://cardcastgame.com/) card sets. To add these, use `!deck.add cardcast $DECK_ID`, e.g. `!deck.add cardcast EU6CJ`.
 
 (note: I might change the terminology
 
@@ -54,4 +54,4 @@ Now that you've done all this, and everyone has joined, you're ready to start th
 # 3. The config file
 
 The config file for CaIv3, `config.json`, consists of three parts. `irc` contains the connection information for the bot. `channels` lists the channels the bot should join once started, but if the bot is connected through a bouncer, it will automatically pick those channels up.
-The `cardsets` map lists the default 'packs' of decks you can use with `!adddefault` (and list with `!defaults`). These consist of a name (case sensitive!) and an array of decks to add. This is in the format of `!addcards`, just in an array instead of delimited with spaces.
+The `cardsets` map lists the default 'packs' of decks you can use with `!deckset.add` (and list with `!deckset.list`). These consist of a name (case sensitive!) and an array of decks to add. This is in the format of `!deck.add`, just in an array instead of delimited with spaces.

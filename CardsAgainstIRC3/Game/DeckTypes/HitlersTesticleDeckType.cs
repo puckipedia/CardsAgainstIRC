@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace CardsAgainstIRC3.Game.CardSets
 {
-    [CardSet("hot")]
-    class HitlersTesticleCardSet : ICardSet
+    [DeckType("hot")]
+    class HitlersTesticleCardSet : IDeckType
     {
         public IEnumerable<Card> BlackCards
         {
@@ -21,7 +21,7 @@ namespace CardsAgainstIRC3.Game.CardSets
         {
             get
             {
-                return "Hitler's testicle card set";
+                return "Hitler's testicle deck";
             }
         }
 

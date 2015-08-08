@@ -90,11 +90,11 @@ namespace CardsAgainstIRC3.Game
                     .ToDictionary(a => (a.GetCustomAttributes(typeof(Bots.BotAttribute), false).First() as Bots.BotAttribute).Name, a => a);
             }
 
-            if (CardSetTypes == null)
+            if (DeckTypes == null)
             {
-                CardSetTypes = this.GetType().Assembly.GetTypes()
-                    .Where(a => a.GetCustomAttributes(typeof(CardSets.CardSetAttribute), false).Length > 0)
-                    .ToDictionary(a => (a.GetCustomAttributes(typeof(CardSets.CardSetAttribute), false).First() as CardSets.CardSetAttribute).Name, a => a);
+                DeckTypes = this.GetType().Assembly.GetTypes()
+                    .Where(a => a.GetCustomAttributes(typeof(CardSets.DeckTypeAttribute), false).Length > 0)
+                    .ToDictionary(a => (a.GetCustomAttributes(typeof(CardSets.DeckTypeAttribute), false).First() as CardSets.DeckTypeAttribute).Name, a => a);
             }
 
             Reset();
@@ -120,11 +120,11 @@ namespace CardsAgainstIRC3.Game
         private GameOutput _output;
         private Random _random = new Random();
 
-        public List<ICardSet> CardSets
+        public List<IDeckType> CardSets
         {
             get;
             private set;
-        } = new List<ICardSet>();
+        } = new List<IDeckType>();
 
         private List<GameUser> _czarOrder = new List<GameUser>();
         private int _currentCzar = 0;
@@ -135,7 +135,7 @@ namespace CardsAgainstIRC3.Game
             private set;
         } = null;
 
-        public static Dictionary<string, Type> CardSetTypes
+        public static Dictionary<string, Type> DeckTypes
         {
             get;
             private set;
@@ -260,14 +260,14 @@ namespace CardsAgainstIRC3.Game
             }
         }
 
-        public void AddCardSet(ICardSet set)
+        public void AddCardSet(IDeckType set)
         {
             CardSets.Add(set);
             _whiteCardStack.AddRange(set.WhiteCards);
             _blackCardStack.AddRange(set.BlackCards);
         }
 
-        public void RemoveCardSet(ICardSet set)
+        public void RemoveCardSet(IDeckType set)
         {
             CardSets.Remove(set);
             _whiteCardStack.RemoveAll(a => set.WhiteCards.Contains(a));

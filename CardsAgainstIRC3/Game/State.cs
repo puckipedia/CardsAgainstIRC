@@ -82,16 +82,16 @@ namespace CardsAgainstIRC3.Game
             Manager.Reset();
         }
 
-        [Command("!bots")]
+        [Command("!bot.types")]
         public void BotsCommand(string user, IEnumerable<string> args)
         {
             Manager.SendPrivate(user, "bots: {0}", string.Join(",", GameManager.Bots.Keys));
         }
 
-        [Command("!cardsets")]
+        [Command("!deck.types")]
         public void CardSetsCommand(string user, IEnumerable<string> args)
         {
-            Manager.SendPrivate(user, "cardsets: {0}", string.Join(",", GameManager.CardSetTypes.Keys));
+            Manager.SendPrivate(user, "cardsets: {0}", string.Join(",", GameManager.DeckTypes.Keys));
         }
 
 #if DEBUG
@@ -103,7 +103,7 @@ namespace CardsAgainstIRC3.Game
         }
 #endif
 
-        [Command("!commands")]
+        [Command("!command.list")]
         public void CommandsCommand(string user, IEnumerable<string> args)
         {
             Manager.SendPrivate(user, "Commands: {0}", string.Join(", ", _commands.Keys));

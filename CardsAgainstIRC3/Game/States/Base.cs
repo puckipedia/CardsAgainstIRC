@@ -122,12 +122,12 @@ namespace CardsAgainstIRC3.Game.States
             }
         }
 
-        [Command("!addbot")]
-        public void AddBotCommand(string nick, IEnumerable<string> arguments)
+        [Command("!bot.add")]
+        public void BotAddCommand(string nick, IEnumerable<string> arguments)
         {
             if (arguments.Count() < 1 || arguments.Count() > 2)
             {
-                Manager.SendPrivate(nick, "Usage: !addbot name [nick]");
+                Manager.SendPrivate(nick, "Usage: !bot.add name [nick]");
                 return;
             }
 
@@ -144,29 +144,29 @@ namespace CardsAgainstIRC3.Game.States
             Manager.SendPublic(nick, "Added <{0}> (a bot of type {1})", botNick, botID);
         }
 
-        [Command("!addcards")]
-        public void AddCardsCommand(string nick, IEnumerable<string> arguments)
+        [Command("!deck.add")]
+        public void DeckAddCommand(string nick, IEnumerable<string> arguments)
         {
             if (arguments.Count() < 1 || arguments.Count() > 2)
             {
-                Manager.SendPrivate(nick, "Usage: !addcards name [arguments...]");
+                Manager.SendPrivate(nick, "Usage: !deck.add name [arguments...]");
                 return;
             }
 
             string cardsetID = arguments.ElementAt(0);
-            if (!GameManager.CardSetTypes.ContainsKey(cardsetID))
+            if (!GameManager.DeckTypes.ContainsKey(cardsetID))
             {
-                Manager.SendPrivate(nick, "Invalid card set type!");
+                Manager.SendPrivate(nick, "Invalid deck type!");
                 return;
             }
 
-            var cardSet = (ICardSet)GameManager.CardSetTypes[cardsetID].GetConstructor(new Type[] { typeof(IEnumerable<string>) }).Invoke(new object[] { arguments.Skip(1) });
+            var cardSet = (IDeckType)GameManager.DeckTypes[cardsetID].GetConstructor(new Type[] { typeof(IEnumerable<string>) }).Invoke(new object[] { arguments.Skip(1) });
             Manager.AddCardSet(cardSet);
             Manager.SendPublic(nick, "Added {0}", cardSet.Description);
         }
 
-        [Command("!cards")]
-        public void CardsCommand(string nick, IEnumerable<string> arguments)
+        [Command("!deck.list")]
+        public void DeckListCommand(string nick, IEnumerable<string> arguments)
         {
             var cardsets = Manager.CardSets;
             int i = 0;
@@ -177,12 +177,12 @@ namespace CardsAgainstIRC3.Game.States
             }
         }
 
-        [Command("!removecards")]
-        public void RemoveCardsCommand(string nick, IEnumerable<string> arguments)
+        [Command("!deck.remove")]
+        public void DeckRemoveCommand(string nick, IEnumerable<string> arguments)
         {
             if (arguments.Count() == 0)
             {
-                Manager.SendPrivate(nick, "Usage: !removecards num [num2...]");
+                Manager.SendPrivate(nick, "Usage: !deck.remove num [num2...]");
                 return;
             }
 
@@ -199,23 +199,23 @@ namespace CardsAgainstIRC3.Game.States
             }
         }
 
-        [Command("!defaults")]
-        public void DefaultsCommand(string nick, IEnumerable<string> arguments)
+        [Command("!deckset.list")]
+        public void DecksetListCommand(string nick, IEnumerable<string> arguments)
         {
-            Manager.SendPrivate(nick, "Defaults: {0}", string.Join(", ", Manager.DefaultSets.Keys));
+            Manager.SendPrivate(nick, "Deck sets: {0}", string.Join(", ", Manager.DefaultSets.Keys));
         }
 
-        [Command("!users")]
+        [Command("!user.list")]
         public void UsersCommand(string nick, IEnumerable<string> arguments)
         {
             Manager.SendPrivate(nick, "Users: {0}", string.Join(", ", Manager.AllUsers.Select(a => a.Nick)));
         }
 
-        [Command("!removebot")]
-        public void RemoveBotCommand(string nick, IEnumerable<string> arguments)
+        [Command("!bot.remove")]
+        public void BotRemoveCommand(string nick, IEnumerable<string> arguments)
         {
             if (arguments.Count() == 0)
-                Manager.SendPrivate(nick, "Usage: !removebot name (without <>)");
+                Manager.SendPrivate(nick, "Usage: !bot.remove name (without <>)");
 
             foreach (var bot in arguments)
             {
@@ -225,14 +225,14 @@ namespace CardsAgainstIRC3.Game.States
             Manager.SendPublic(nick, "Bots removed: {0}", string.Join(", ", arguments));
         }
 
-        [Command("!currentbots")]
-        public void CurrentBotsCommand(string nick, IEnumerable<string> arguments)
+        [Command("!bot.list")]
+        public void BotListCommand(string nick, IEnumerable<string> arguments)
         {
             Manager.SendPrivate(nick, "Current Bots: {0}", string.Join(", ", Manager.AllUsers.Where(a => a.Bot != null).Select(a => a.Nick)));
         }
 
-        [Command("!adddefault")]
-        public void AddDefaultCommand(string nick, IEnumerable<string> arguments)
+        [Command("!deckset.add")]
+        public void DecksetAddCommand(string nick, IEnumerable<string> arguments)
         {
             if (arguments.Count() == 0)
                 arguments = new string[] { "default" };
@@ -243,14 +243,14 @@ namespace CardsAgainstIRC3.Game.States
                 {
                     foreach (var list in def.Item2)
                     {
-                        Manager.AddCardSet((ICardSet)GameManager.CardSetTypes[list[0]].GetConstructor(new Type[] { typeof(IEnumerable<string>) }).Invoke(new object[] { list.Skip(1) }));
+                        Manager.AddCardSet((IDeckType)GameManager.DeckTypes[list[0]].GetConstructor(new Type[] { typeof(IEnumerable<string>) }).Invoke(new object[] { list.Skip(1) }));
                     }
-                    Manager.SendPublic(nick, "Added card set {0}", def.Item1);
+                    Manager.SendPublic(nick, "Added deck {0}", def.Item1);
                 }
             }
             catch (Exception e)
             {
-                Manager.SendPublic(nick, "Failed to add defaults");
+                Manager.SendPublic(nick, "Failed to add deckset");
                 Console.WriteLine(e);
             }
         }

@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 
 namespace CardsAgainstIRC3.Game.CardSets
 {
-    [CardSet("cardcast")]
-    class CardCast : ICardSet
+    [DeckType("cardcast")]
+    class CardCast : IDeckType
     {
         public IEnumerable<Card> WhiteCards
         {

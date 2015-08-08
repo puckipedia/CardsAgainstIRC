@@ -8,7 +8,7 @@ namespace CardsAgainstIRC3.Game.CardSets
 {
 
     [AttributeUsage(AttributeTargets.Class)]
-    public class CardSetAttribute : Attribute
+    public class DeckTypeAttribute : Attribute
     {
         public string Name
         {
@@ -16,7 +16,7 @@ namespace CardsAgainstIRC3.Game.CardSets
             private set;
         }
 
-        public CardSetAttribute(string name)
+        public DeckTypeAttribute(string name)
         {
             Name = name;
         }
