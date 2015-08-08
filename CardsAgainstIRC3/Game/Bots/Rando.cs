@@ -26,7 +26,7 @@ namespace CardsAgainstIRC3.Game.Bots
             Manager = manager;
         }
 
-        public void RegisteredToUser(GameUser user)
+        public void LinkedToUser(GameUser user)
         {
             User = user;
         }
