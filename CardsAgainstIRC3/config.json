@@ -12,5 +12,7 @@
 
   "cardsets": {
     "default": [ ]
-  }
+  },
+
+  "reset-on-exception": false
 }

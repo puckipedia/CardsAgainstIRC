@@ -504,7 +504,8 @@ namespace CardsAgainstIRC3.Game
                 } catch (Exception e)
                 {
                     SendToAll("An exception occured, trying to recover...");
-                    Reset();
+                    if (_main.Config.ResetOnException)
+                        Reset();
                     Console.WriteLine(e);
                 }
                 _autoResetEvent.WaitOne(1000);

@@ -52,6 +52,13 @@ namespace CardsAgainstIRC3
             get;
             set;
         }
+
+        [JsonProperty("reset-on-exception")]
+        public bool ResetOnException
+        {
+            get;
+            set;
+        }
     }
 
     public class GameMain : Game.GameOutput, IDisposable
