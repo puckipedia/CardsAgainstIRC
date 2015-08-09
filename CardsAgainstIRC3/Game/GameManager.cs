@@ -492,15 +492,21 @@ namespace CardsAgainstIRC3.Game
         {
             while (true)
             {
-                IRCMessage msg;
-                if (_messages.Count > 0 && _messages.TryDequeue(out msg))
+                try {
+                    IRCMessage msg;
+                    if (_messages.Count > 0 && _messages.TryDequeue(out msg))
+                    {
+                        OnIRCMessage(msg);
+                    }
+
+
+                    CurrentState.Tick();
+                } catch (Exception e)
                 {
-                    OnIRCMessage(msg);
+                    SendToAll("An exception occured, trying to recover...");
+                    Reset();
+                    Console.WriteLine(e);
                 }
-
-
-                CurrentState.Tick();
-                
                 _autoResetEvent.WaitOne(1000);
                 _autoResetEvent.Reset();
             }
