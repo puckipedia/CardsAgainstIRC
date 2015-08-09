@@ -169,8 +169,11 @@ namespace CardsAgainstIRC3.Game.States
                 Manager.StartState(new ChoosingCards(Manager));
         }
 
-        public override bool UserLeft(GameUser user)
+        public override bool UserLeft(GameUser user, bool voluntarily)
         {
+            if (!voluntarily)
+                user.CanVote = user.CanChooseCards = false;
+
             if (!Votes.ContainsKey(user.Guid))
                 return false;
 

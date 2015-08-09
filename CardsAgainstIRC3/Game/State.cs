@@ -108,7 +108,7 @@ namespace CardsAgainstIRC3.Game
         {
             Manager.SendPrivate(user, "Commands: {0}", string.Join(", ", _commands.Keys));
         }
-        public virtual bool UserLeft(GameUser user)
+        public virtual bool UserLeft(GameUser user, bool voluntarily)
         {
             return true;
         }

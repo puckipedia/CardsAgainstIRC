@@ -59,14 +59,19 @@ namespace CardsAgainstIRC3.Game.States
             CheckReady();
         }
 
-        public override bool UserLeft(GameUser user)
+        public override bool UserLeft(GameUser user, bool voluntarily)
         {
+
+            if (!voluntarily)
+                user.CanChooseCards = user.CanVote = false;
+            else
+                user.CanVote = false;
+
             if (WaitingOnUsers.Contains(user))
             {
                 WaitingOnUsers.Remove(user);
                 ChosenUsers.Add(user);
-                user.HasChosenCards = true;
-                user.CanVote = false; // remove from possible democracy
+                user.HasChosenCards = false;
                 CheckReady();
             }
 

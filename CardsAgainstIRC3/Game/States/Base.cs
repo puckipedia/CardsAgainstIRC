@@ -109,15 +109,15 @@ namespace CardsAgainstIRC3.Game.States
             if (player == null)
                 return;
 
-
-            if (UserLeft(player))
+            bool voluntarily = arguments.Count() > 0 && arguments.First() != "pause";
+            if (UserLeft(player, voluntarily))
             {
                 Manager.UserQuit(nick);
                 Manager.SendPublic(nick, "You left{0}!", player.JoinReason);
             }
             else
             {
-                player.WantsToLeave = true;
+                player.WantsToLeave = voluntarily;
                 Manager.SendPublic(player, "You will leave {0}once this round ends!", player.JoinReason);
             }
         }

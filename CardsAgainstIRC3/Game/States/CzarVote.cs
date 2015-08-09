@@ -105,7 +105,7 @@ namespace CardsAgainstIRC3.Game.States
                 Manager.StartState(new ChoosingCards(Manager));
         }
 
-        public override bool UserLeft(GameUser user)
+        public override bool UserLeft(GameUser user, bool voluntarily)
         {
             if (user == Manager.CurrentCzar())
             {

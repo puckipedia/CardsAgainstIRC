@@ -247,7 +247,7 @@ namespace CardsAgainstIRC3.Game
             var user = Resolve("<" + name + ">");
             if (user == null)
                 return;
-            if (CurrentState.UserLeft(user))
+            if (CurrentState.UserLeft(user, true))
                 UserQuit("<" + name + ">");
             else
                 user.WantsToLeave = true;
@@ -429,6 +429,14 @@ namespace CardsAgainstIRC3.Game
             return user;
         }
 
+        private void handleUserLeaving(GameUser user, bool voluntarily)
+        {
+            if (CurrentState != null)
+                CurrentState.UserLeft(user, voluntarily);
+            else
+                UserQuit(user.Nick);
+        }
+
         private bool OnIRCMessage(IRCMessage msg)
         {
             switch (msg.Command)
@@ -439,30 +447,21 @@ namespace CardsAgainstIRC3.Game
                 case "QUIT":
                     if (!_userMap.ContainsKey(msg.Origin.Nick))
                         break;
-                    if (CurrentState != null)
-                        CurrentState.UserLeft(Resolve(msg.Origin));
-                    else
-                        UserQuit(msg.Origin.Nick);
+                    handleUserLeaving(Resolve(msg.Origin), false);
                     break;
                 case "PART":
                     if (msg.Arguments[0] != Channel)
                         break;
                     if (!_userMap.ContainsKey(msg.Origin.Nick))
                         break;
-                    if (CurrentState != null)
-                        CurrentState.UserLeft(Resolve(msg.Origin));
-                    else
-                        UserQuit(msg.Origin.Nick);
+                    handleUserLeaving(Resolve(msg.Origin), false);
                     break;
                 case "KICK":
                     if (msg.Arguments[0] != Channel)
                         break;
                     if (!_userMap.ContainsKey(msg.Arguments[1]))
                         break;
-                    if (CurrentState != null)
-                        CurrentState.UserLeft(Resolve(msg.Arguments[1]));
-                    else
-                        UserQuit(msg.Arguments[1]);
+                    handleUserLeaving(Resolve(msg.Origin), true);
                     break;
                 case "PRIVMSG":
                 case "NOTICE":
@@ -501,7 +500,7 @@ namespace CardsAgainstIRC3.Game
 
 
                 CurrentState.Tick();
-
+                
                 _autoResetEvent.WaitOne(1000);
                 _autoResetEvent.Reset();
             }
