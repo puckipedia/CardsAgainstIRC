@@ -102,6 +102,26 @@ namespace CardsAgainstIRC3.Game.States
             Manager.SendPublic(nick, "You joined{0}!", player.JoinReason);
         }
 
+        [Command("!pause")]
+        public void PauseCommand(string nick, IEnumerable<string> arguments)
+        {
+            var player = Manager.Resolve(nick);
+            if (player == null)
+                return;
+
+            UserLeft(player, false);
+        }
+
+        [Command("!resume")]
+        public void ResumeCommand(string nick, IEnumerable<string> arguments)
+        {
+            var player = Manager.Resolve(nick);
+            if (player == null)
+                return;
+
+            player.CanChooseCards = player.CanVote = true;
+        }
+
         [Command("!leave")]
         public void LeaveCommand(string nick, IEnumerable<string> arguments)
         {
@@ -109,15 +129,14 @@ namespace CardsAgainstIRC3.Game.States
             if (player == null)
                 return;
 
-            bool voluntarily = arguments.Count() > 0 && arguments.First() != "pause";
-            if (UserLeft(player, voluntarily))
+            if (UserLeft(player, true))
             {
                 Manager.UserQuit(nick);
                 Manager.SendPublic(nick, "You left{0}!", player.JoinReason);
             }
             else
             {
-                player.WantsToLeave = voluntarily;
+                player.WantsToLeave = true;
                 Manager.SendPublic(player, "You will leave {0}once this round ends!", player.JoinReason);
             }
         }
