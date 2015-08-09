@@ -59,7 +59,7 @@ namespace CardsAgainstIRC3.Game.States
             Manager.SendPublic(nick, "Waiting for czar {0} to choose...", Manager.CurrentCzar().Nick);
         }
 
-        [Command("!card")]
+        [Command("!card", "!pick", "!p")]
         public void CardCommand(string nick, IEnumerable<string> arguments)
         {
             var user = Manager.Resolve(nick);

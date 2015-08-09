@@ -63,10 +63,14 @@ namespace CardsAgainstIRC3.Game.States
 
         public Dictionary<Guid, int> TallyVotes(List<Guid> dismissed)
         {
-            return Votes.Select(delegate(KeyValuePair<Guid, List<int>> a) {
-                var values = a.Value.SkipWhile(b => dismissed.Contains(CzarOrder[b].Guid));
-                return values.Count() == 0 ? -1 : values.First();
-                }).Where(a => a != -1).GroupBy(a => a).ToDictionary(a => CzarOrder[a.Key].Guid, a => a.Count());
+            return Votes.Where(a => a.Value != null)
+                .Select(delegate(KeyValuePair<Guid, List<int>> a) {
+                    var values = a.Value.SkipWhile(b => dismissed.Contains(CzarOrder[b].Guid));
+                    return values.Count() == 0 ? -1 : values.First();
+                })
+                .Where(a => a != -1)
+                .GroupBy(a => a)
+                .ToDictionary(a => CzarOrder[a.Key].Guid, a => a.Count());
         }
 
         public override void TimeoutReached()
@@ -91,7 +95,7 @@ namespace CardsAgainstIRC3.Game.States
             Manager.SendPublic(nick, "Waiting for czars {0} to choose...", string.Join(", ", Votes.Where(a => a.Value == null).Select(a => Manager.Resolve(a.Key).Nick)));
         }
 
-        [Command("!card")]
+        [Command("!card", "!pick", "!p")]
         public void CardCommand(string nick, IEnumerable<string> arguments)
         {
             var user = Manager.Resolve(nick);
