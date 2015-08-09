@@ -107,6 +107,9 @@ namespace CardsAgainstIRC3.Game.States
 
         public override bool UserLeft(GameUser user, bool voluntarily)
         {
+            if (!voluntarily)
+                user.CanVote = user.CanChooseCards = false;
+
             if (user == Manager.CurrentCzar())
             {
                 int random = Random.Next(CzarOrder.Count);
