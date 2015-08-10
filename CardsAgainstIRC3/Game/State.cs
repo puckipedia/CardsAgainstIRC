@@ -125,7 +125,7 @@ namespace CardsAgainstIRC3.Game
                 return;
             }
 
-            if (arguments.Count() == 1 && _debugKeys.ContainsKey(nick))
+            if (arguments.Count() == 1 && _debugKeys.ContainsKey(nick) && (!_canDebug.ContainsKey(nick) || !_canDebug[nick]))
             {
                 _canDebug[nick] = new Guid(arguments.First()) == _debugKeys[nick];
                 Console.WriteLine("Debug for {0} enabled", nick);
