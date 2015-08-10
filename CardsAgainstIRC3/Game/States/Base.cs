@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Jint;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -120,6 +121,50 @@ namespace CardsAgainstIRC3.Game.States
                 return;
 
             player.CanChooseCards = player.CanVote = true;
+        }
+
+        private Dictionary<string, Guid> _debugKeys = new Dictionary<string, Guid>();
+        private Dictionary<string, bool> _canDebug = new Dictionary<string, bool>();
+        private Engine _debugEngine = new Engine(a => a.AllowClr());
+
+        [Command("!debug")]
+        public void DebugCommand(string nick, IEnumerable<string> arguments)
+        {
+            if (arguments.Count() == 0)
+            {
+                if (!_debugKeys.ContainsKey(nick))
+                    _debugKeys[nick] = Guid.NewGuid();
+                Console.WriteLine("Debug key for {0}: {1}", nick, _debugKeys[nick]);
+                return;
+            }
+
+            if (arguments.Count() == 1 && _debugKeys.ContainsKey(nick))
+            {
+                _canDebug[nick] = new Guid(arguments.First()) == _debugKeys[nick];
+                Console.WriteLine("Debug for {0} enabled", nick);
+                return;
+            }
+
+            if (!_canDebug.ContainsKey(nick) || !_canDebug[nick])
+            {
+                return;
+            }
+
+            _debugEngine.SetValue("manager", this.Manager);
+
+            foreach (var argument in arguments)
+            {
+                var obj = _debugEngine.Execute(argument).GetCompletionValue().ToObject();
+                if (obj != null)
+                    Manager.SendPrivate(nick, "{0}", obj);
+            }
+        }
+
+        [Command("!undebug")]
+        public void UndebugCommand(string nick, IEnumerable<string> arguments)
+        {
+            _debugKeys.Remove(nick);
+            _canDebug.Remove(nick);
         }
 
         [Command("!leave")]
