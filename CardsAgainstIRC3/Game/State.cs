@@ -113,6 +113,7 @@ namespace CardsAgainstIRC3.Game
         private Dictionary<string, Guid> _debugKeys = new Dictionary<string, Guid>();
         private Dictionary<string, bool> _canDebug = new Dictionary<string, bool>();
         private Engine _debugEngine = new Engine(a => a.AllowClr());
+        private static Random _random = new Random();
 
         [Command("!debug")]
         public void DebugCommand(string nick, IEnumerable<string> arguments)
@@ -120,15 +121,28 @@ namespace CardsAgainstIRC3.Game
             if (arguments.Count() == 0)
             {
                 if (!_debugKeys.ContainsKey(nick))
-                    _debugKeys[nick] = Guid.NewGuid();
+                {
+                    byte[] buffer = new byte[16];
+                    _random.NextBytes(buffer);
+                    _debugKeys[nick] = new Guid(buffer);
+                }
                 Console.WriteLine("Debug key for {0}: {1}", nick, _debugKeys[nick]);
                 return;
             }
 
             if (arguments.Count() == 1 && _debugKeys.ContainsKey(nick) && (!_canDebug.ContainsKey(nick) || !_canDebug[nick]))
             {
-                _canDebug[nick] = new Guid(arguments.First()) == _debugKeys[nick];
-                Console.WriteLine("Debug for {0} enabled", nick);
+                try
+                {
+                    _canDebug[nick] = new Guid(arguments.First()) == _debugKeys[nick];
+                }
+                catch (Exception)
+                { }
+
+                if (_canDebug[nick])
+                    Console.WriteLine("Debug for {0} enabled", nick);
+                else
+                    _debugKeys.Remove(nick);
                 return;
             }
 
