@@ -159,25 +159,6 @@ namespace CardsAgainstIRC3.Game
             private set;
         } = new Dictionary<string, object>();
 
-        private List<Card> _whiteCardStack = new List<Card>();
-        private List<Card> _blackCardStack = new List<Card>();
-
-        public IEnumerable<Card> WhiteCards
-        {
-            get
-            {
-                return _whiteCardStack;
-            }
-        }
-
-        public IEnumerable<Card> BlackCards
-        {
-            get
-            {
-                return _blackCardStack;
-            }
-        }
-
         private Dictionary<Guid, GameUser> _users = new Dictionary<Guid, GameUser>();
         private Dictionary<string, Guid> _userMap = new Dictionary<string, Guid>();
 
@@ -275,21 +256,16 @@ namespace CardsAgainstIRC3.Game
         public void AddCardSet(IDeckType set)
         {
             CardSets.Add(set);
-            _whiteCardStack.AddRange(set.WhiteCards);
-            _blackCardStack.AddRange(set.BlackCards);
         }
 
         public void RemoveCardSet(IDeckType set)
         {
             CardSets.Remove(set);
-            _whiteCardStack.RemoveAll(a => set.WhiteCards.Contains(a));
-            _blackCardStack.RemoveAll(a => set.BlackCards.Contains(a));
         }
 
+        [Obsolete("Does not do fucking anything atm")]
         public void ShuffleCards()
         {
-            _whiteCardStack = _whiteCardStack.OrderBy(a => _random.Next()).ToList();
-            _blackCardStack = _blackCardStack.OrderBy(a => _random.Next()).ToList();
         }
 
 
@@ -326,8 +302,6 @@ namespace CardsAgainstIRC3.Game
         public void Reset()
         {
             StartState(new States.Inactive(this));
-            _whiteCardStack.Clear();
-            _blackCardStack.Clear();
             _userMap.Clear();
             _output.UndistinguishPeople(Channel, _users.Where(a => a.Value.Bot == null).Select(a => a.Value.Nick));
             _users.Clear();
@@ -338,9 +312,17 @@ namespace CardsAgainstIRC3.Game
 
         public Card TakeWhiteCard()
         {
-            Card card = _whiteCardStack[0];
-            _whiteCardStack.RemoveAt(0);
-            return card;
+            int total_cards = CardSets.Sum(a => a.WhiteCards);
+            int random_card = _random.Next(total_cards);
+            int i = 0;
+            foreach (var set in CardSets)
+            {
+                i += set.WhiteCards;
+                if (random_card < i)
+                    return set.TakeWhiteCard();
+            }
+
+            return CardSets.Last().TakeWhiteCard();
         }
 
         public Card CurrentBlackCard
@@ -351,8 +333,20 @@ namespace CardsAgainstIRC3.Game
 
         public void NewBlackCard()
         {
-            CurrentBlackCard = _blackCardStack[0];
-            _blackCardStack.RemoveAt(0);
+            int total_cards = CardSets.Sum(a => a.BlackCards);
+            int random_card = _random.Next(total_cards);
+            int i = 0;
+            foreach (var set in CardSets)
+            {
+                i += set.BlackCards;
+                if (random_card < i)
+                {
+                    CurrentBlackCard = set.TakeBlackCard();
+                    return;
+                }
+            }
+
+            CurrentBlackCard = CardSets.Last().TakeBlackCard();
         }
 
         public IEnumerable<Card> TakeWhiteCards(int count = 1)

@@ -9,12 +9,17 @@ namespace CardsAgainstIRC3.Game.DeckTypes
     [DeckType("black")]
     public class BlackCard : IDeckType
     {
-        public IEnumerable<Card> WhiteCards
+        public int WhiteCards
         {
             get
             {
-                return new Card[] { };
+                return 0;
             }
+        }
+
+        public Card TakeWhiteCard()
+        {
+            throw new NotImplementedException("BlackCard cannot deposit any white cards!");
         }
 
         public string Description
@@ -25,15 +30,16 @@ namespace CardsAgainstIRC3.Game.DeckTypes
             }
         }
 
-        public BlackCard(IEnumerable<string> arguments)
+        public BlackCard(GameManager manager, IEnumerable<string> arguments)
         {
             if (arguments.Count() < 2)
-                throw new Exception("Usage: count \"card\" \"card part 2\" (parts are seperated by _)");
+                throw new ArgumentException("arguments", "Usage: count \"card\" \"card part 2\" (parts are seperated by _)");
             int result;
             if (!int.TryParse(arguments.First(), out result))
-                throw new Exception("Invalid int!");
+                throw new ArgumentOutOfRangeException("arguments[0]", "Invalid int!");
 
             Repeat = result;
+            _leftOver = Repeat;
             Card = new Card() { Parts = arguments.Skip(1).ToArray() };
         }
 
@@ -49,12 +55,20 @@ namespace CardsAgainstIRC3.Game.DeckTypes
             private set;
         }
 
-        public IEnumerable<Card> BlackCards
+        private int _leftOver;
+
+        public int BlackCards
         {
             get
             {
-                return Enumerable.Range(0, Repeat).Select(a => Card);
+                return _leftOver;
             }
+        }
+
+        public Card TakeBlackCard()
+        {
+            _leftOver--;
+            return Card;
         }
     }
 }

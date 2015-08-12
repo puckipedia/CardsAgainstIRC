@@ -4,11 +4,16 @@ namespace CardsAgainstIRC3.Game
 {
     public interface IDeckType
     {
-        IEnumerable<Card> WhiteCards
+        Card TakeWhiteCard();
+
+        Card TakeBlackCard();
+
+        int WhiteCards
         {
             get;
         }
-        IEnumerable<Card> BlackCards
+
+        int BlackCards
         {
             get;
         }

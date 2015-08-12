@@ -12,16 +12,37 @@ namespace CardsAgainstIRC3.Game.DeckTypes
     [DeckType("cardcast")]
     class CardCast : IDeckType
     {
-        public IEnumerable<Card> WhiteCards
+        private List<Card> _whiteCards;
+        private List<Card> _blackCards;
+
+        public int WhiteCards
         {
-            get;
-            private set;
+            get
+            {
+                return _whiteCards.Count;
+            }
         }
 
-        public IEnumerable<Card> BlackCards
+        public int BlackCards
         {
-            get;
-            private set;
+            get
+            {
+                return _blackCards.Count;
+            }
+        }
+
+        public Card TakeWhiteCard()
+        {
+            var card = _whiteCards[0];
+            _whiteCards.RemoveAt(0);
+            return card;
+        }
+
+        public Card TakeBlackCard()
+        {
+            var card = _blackCards[0];
+            _blackCards.RemoveAt(0);
+            return card;
         }
 
         public string Description
@@ -70,26 +91,24 @@ namespace CardsAgainstIRC3.Game.DeckTypes
 
         DeckResponse Deck;
 
-        public CardCast(IEnumerable<string> arguments)
+        public CardCast(GameManager manager, IEnumerable<string> arguments)
         {
             if (arguments.Count() == 0)
                 throw new Exception("Need cardcast code");
             Deck = GetDeckInfo(arguments.First());
             var cards = GetCards(arguments.First());
 
-            List<Card> WhiteCards = new List<Card>();
-            List<Card> BlackCards = new List<Card>();
-            foreach (var card in cards.calls)
+            _whiteCards = new List<Card>();
+            _blackCards = new List<Card>();
+            Random rng = new Random();
+            foreach (var card in cards.calls.OrderBy(a => rng.Next()))
             {
-                BlackCards.Add(new Card() { Parts = card.text.ToArray() });
+                _blackCards.Add(new Card() { Parts = card.text.ToArray() });
             }
-            foreach (var card in cards.responses)
+            foreach (var card in cards.responses.OrderBy(a => rng.Next()))
             {
-                WhiteCards.Add(new Card() { Parts = card.text.ToArray() });
+                _whiteCards.Add(new Card() { Parts = card.text.ToArray() });
             }
-
-            this.WhiteCards = WhiteCards;
-            this.BlackCards = BlackCards;
         }
 
         public static DeckResponse GetDeckInfo(string str)

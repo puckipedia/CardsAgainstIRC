@@ -20,13 +20,12 @@ namespace CardsAgainstIRC3.Game.States
                 Manager.SendPublic(nick, "We don't have enough players!");
                 return;
             }
-            else if (Manager.WhiteCards.Count() == 0 || Manager.BlackCards.Count() == 0)
+            else if (Manager.CardSets.Sum(a => a.WhiteCards) == 0 || Manager.CardSets.Sum(a => a.BlackCards) == 0)
             {
                 Manager.SendPublic(nick, "Not enough cards to start the game!");
                 return;
             }
 
-            Manager.ShuffleCards();
             Manager.SendToAll("Game is starting...");
             Manager.StartState(new ChoosingCards(Manager));
         }

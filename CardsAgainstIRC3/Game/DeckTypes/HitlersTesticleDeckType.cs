@@ -9,12 +9,20 @@ namespace CardsAgainstIRC3.Game.DeckTypes
     [DeckType("hot")]
     class HitlersTesticleCardSet : IDeckType
     {
-        public IEnumerable<Card> BlackCards
+        public int BlackCards
         {
             get
             {
-                return Enumerable.Range(0, 100).Select(a => new Card() { Parts = new string[] { "Hitler's ", " testicle #" + a } });
+                return 100 - _blackCount;
             }
+        }
+
+        private int _blackCount = 0;
+        private int _whiteCount = 0;
+
+        public Card TakeBlackCard()
+        {
+            return new Card() { Parts = new string[] { "Hitler's ", " testicle #" + _blackCount++ } };
         }
 
         public string Description
@@ -25,15 +33,20 @@ namespace CardsAgainstIRC3.Game.DeckTypes
             }
         }
 
-        public IEnumerable<Card> WhiteCards
+        public int WhiteCards
         {
             get
             {
-                return Enumerable.Range(0, 100).Select(a => new Card() { Parts = new string[] { "Hitler's testicle #" + a } });
+                return 100 - _whiteCount;
             }
         }
 
-        public HitlersTesticleCardSet(IEnumerable<string> args)
+        public Card TakeWhiteCard()
+        {
+            return new Card() { Parts = new string[] { "Hitler's testicle #" + _whiteCount++ } };
+        }
+
+        public HitlersTesticleCardSet(GameManager manager, IEnumerable<string> args)
         {
 
         }

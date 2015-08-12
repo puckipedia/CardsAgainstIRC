@@ -263,7 +263,7 @@ namespace CardsAgainstIRC3.Game.States
                 {
                     foreach (var list in def.Item2)
                     {
-                        Manager.AddCardSet((IDeckType)GameManager.DeckTypes[list[0]].GetConstructor(new Type[] { typeof(IEnumerable<string>) }).Invoke(new object[] { list.Skip(1) }));
+                        Manager.AddCardSet((IDeckType)GameManager.DeckTypes[list[0]].GetConstructor(new Type[] { typeof(GameManager), typeof(IEnumerable<string>) }).Invoke(new object[] { Manager, list.Skip(1) }));
                     }
                     Manager.SendPublic(nick, "Added deck {0}", def.Item1);
                 }
