@@ -227,7 +227,7 @@ namespace CardsAgainstIRC3.Game.States
             int i = 0;
             foreach (var set in cardsets)
             {
-                Manager.SendToAll("{0}. {1} {2}", i, set.Item1.Description, set.Item2);
+                Manager.SendToAll("{0}. \x02{1}\x02 (weight {2})", i, set.Item1.Description, set.Item2);
                 i++;
             }
         }
