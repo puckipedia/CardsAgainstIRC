@@ -180,9 +180,44 @@ namespace CardsAgainstIRC3.Game.States
                 return;
             }
 
-            var cardSet = (IDeckType)GameManager.DeckTypes[cardsetID].GetConstructor(new Type[] { typeof(IEnumerable<string>) }).Invoke(new object[] { arguments.Skip(1) });
+            var cardSet = (IDeckType)GameManager.DeckTypes[cardsetID].GetConstructor(new Type[] { typeof(GameManager), typeof(IEnumerable<string>) }).Invoke(new object[] { Manager, arguments.Skip(1) });
             Manager.AddCardSet(cardSet);
             Manager.SendPublic(nick, "Added {0}", cardSet.Description);
+        }
+
+        [Command("!deck.weight")]
+        public void DeckWeightCommand(string nick, IEnumerable<string> arguments)
+        {
+            if (arguments.Count() > 2 || arguments.Count() == 0)
+            {
+                Manager.SendPrivate(nick, "Usage: !deck.weight deck [weight]");
+                return;
+            }
+
+            int deck;
+            if (!int.TryParse(arguments.First(), out deck) || deck < 0 || deck >= Manager.CardSets.Count)
+            {
+                Manager.SendPrivate(nick, "Out of range!");
+                return;
+            }
+
+            if (arguments.Count() == 1)
+            {
+                var deckinfo = Manager.CardSets[deck];
+                Manager.SendPrivate(nick, "Weight of {0} is {1}", deckinfo.Item1.Description, deckinfo.Item2);
+            }
+            else
+            {
+                int weight;
+                if (!int.TryParse(arguments.ElementAt(1), out weight) || weight < 1)
+                {
+                    Manager.SendPrivate(nick, "Weight is out of range!");
+                    return;
+                }
+
+                var deckinfo = Manager.CardSets[deck];
+                Manager.CardSets[deck] = new Tuple<IDeckType, int>(deckinfo.Item1, weight);
+            }
         }
 
         [Command("!deck.list")]
@@ -192,7 +227,7 @@ namespace CardsAgainstIRC3.Game.States
             int i = 0;
             foreach (var set in cardsets)
             {
-                Manager.SendToAll("{0}. {1}", i, set.Description);
+                Manager.SendToAll("{0}. {1} {2}", i, set.Item1.Description, set.Item2);
                 i++;
             }
         }

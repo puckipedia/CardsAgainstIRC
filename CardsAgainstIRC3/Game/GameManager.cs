@@ -132,11 +132,11 @@ namespace CardsAgainstIRC3.Game
         private GameOutput _output;
         private Random _random = new Random();
 
-        public List<IDeckType> CardSets
+        public List<Tuple<IDeckType, int>> CardSets
         {
             get;
             private set;
-        } = new List<IDeckType>();
+        } = new List<Tuple<IDeckType, int>>();
 
         private List<GameUser> _czarOrder = new List<GameUser>();
         private int _currentCzar = 0;
@@ -253,14 +253,14 @@ namespace CardsAgainstIRC3.Game
             }
         }
 
-        public void AddCardSet(IDeckType set)
+        public void AddCardSet(IDeckType set, int weight = 1)
         {
-            CardSets.Add(set);
+            CardSets.Add(new Tuple<IDeckType, int>(set, weight));
         }
 
         public void RemoveCardSet(IDeckType set)
         {
-            CardSets.Remove(set);
+            CardSets.RemoveAll(a => a.Item1 == set);
         }
 
         [Obsolete("Does not do fucking anything atm")]
@@ -312,17 +312,17 @@ namespace CardsAgainstIRC3.Game
 
         public Card TakeWhiteCard()
         {
-            int total_cards = CardSets.Sum(a => a.WhiteCards);
+            int total_cards = CardSets.Sum(a => a.Item1.WhiteCards * a.Item2);
             int random_card = _random.Next(total_cards);
             int i = 0;
             foreach (var set in CardSets)
             {
-                i += set.WhiteCards;
+                i += set.Item1.WhiteCards * set.Item2;
                 if (random_card < i)
-                    return set.TakeWhiteCard();
+                    return set.Item1.TakeWhiteCard();
             }
 
-            return CardSets.Last().TakeWhiteCard();
+            return CardSets.Last().Item1.TakeWhiteCard();
         }
 
         public Card CurrentBlackCard
@@ -333,20 +333,20 @@ namespace CardsAgainstIRC3.Game
 
         public void NewBlackCard()
         {
-            int total_cards = CardSets.Sum(a => a.BlackCards);
+            int total_cards = CardSets.Sum(a => a.Item1.BlackCards * a.Item2);
             int random_card = _random.Next(total_cards);
             int i = 0;
             foreach (var set in CardSets)
             {
-                i += set.BlackCards;
+                i += set.Item1.BlackCards * set.Item2;
                 if (random_card < i)
                 {
-                    CurrentBlackCard = set.TakeBlackCard();
+                    CurrentBlackCard = set.Item1.TakeBlackCard();
                     return;
                 }
             }
 
-            CurrentBlackCard = CardSets.Last().TakeBlackCard();
+            CurrentBlackCard = CardSets.Last().Item1.TakeBlackCard();
         }
 
         public IEnumerable<Card> TakeWhiteCards(int count = 1)
