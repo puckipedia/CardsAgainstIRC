@@ -31,7 +31,7 @@ namespace CardsAgainstIRC3.Game.DeckTypes
         {
             get
             {
-                return Manager.AllUsers.Select(a => !UsedNicks.Contains(a.Guid)).Count();
+                return Manager.AllUsers.Count(a => !UsedNicks.Contains(a.Guid));
             }
         }
 

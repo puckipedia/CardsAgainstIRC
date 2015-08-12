@@ -314,9 +314,11 @@ namespace CardsAgainstIRC3.Game
         {
             int total_cards = CardSets.Sum(a => a.Item1.WhiteCards * a.Item2);
             int random_card = _random.Next(total_cards);
+            Console.WriteLine("Card: {0}/{1}", random_card, total_cards);
             int i = 0;
             foreach (var set in CardSets)
             {
+                Console.WriteLine("{0} -> {1} cards", set.Item1.Description, set.Item1.WhiteCards * set.Item2);
                 i += set.Item1.WhiteCards * set.Item2;
                 if (random_card < i)
                     return set.Item1.TakeWhiteCard();
