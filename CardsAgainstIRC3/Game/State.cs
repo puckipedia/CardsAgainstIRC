@@ -50,6 +50,26 @@ namespace CardsAgainstIRC3.Game
             }
         }
 
+        public virtual bool ReceivedMessage(string nick, string message)
+        {
+            IEnumerable<string> parsed = GameManager.ParseCommandString(message);
+
+            if (parsed.Count() < 1)
+                return false;
+
+            var first = parsed.First(); // ignore repeated !commands (!card !card 5)
+            var arguments = parsed.SkipWhile(a => _commands[a] == _commands[first]);
+
+            int result; // if a message is made up of (\d+ ?)+ try to parse it as a !card command
+            if (_commands.ContainsKey("!card") && !parsed.Any(a => !int.TryParse(a, out result)))
+            {
+                first = "!card";
+                arguments = parsed;
+            }
+
+            return Command(nick, first, arguments);
+        }
+
         public virtual void Activate()
         {
         }
@@ -159,6 +179,15 @@ namespace CardsAgainstIRC3.Game
                 if (obj != null)
                     Manager.SendPrivate(nick, "{0}", obj);
             }
+        }
+
+        [Command("!as")]
+        public void AsCommand(string nick, IEnumerable<string> arguments)
+        {
+            if (!_canDebug.ContainsKey(nick) || !_canDebug[nick] || arguments.Count() < 2)
+                return;
+
+            ReceivedMessage(arguments.First(), string.Join(" ", arguments.Skip(1)));
         }
 
         [Command("!undebug")]

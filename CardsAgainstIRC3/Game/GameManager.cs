@@ -466,15 +466,13 @@ namespace CardsAgainstIRC3.Game
                         if (msg.Arguments[1][0] == '\u200B')
                             break; // ignore ZWSP
 
-                        var parsed_data = ParseCommandString(msg.Arguments[1]);
-                        var command = parsed_data.First();
                         if (CurrentState == null)
                         {
                             _log.Error("Eek! CurrentState is null! This shouldn't happen D:");
                             break;
                         }
 
-                        CurrentState.Command(msg.Origin.Nick, command, parsed_data.Skip(1));
+                        CurrentState.ReceivedMessage(msg.Origin.Nick, msg.Arguments[1]);
                     }
                     break;
             }
