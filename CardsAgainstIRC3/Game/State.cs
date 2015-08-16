@@ -58,7 +58,7 @@ namespace CardsAgainstIRC3.Game
                 return false;
 
             var first = parsed.First(); // ignore repeated !commands (!card !card 5)
-            var arguments = parsed.SkipWhile(a => _commands[a] == _commands[first]);
+            var arguments = parsed.SkipWhile(a => _commands.ContainsKey(a) && _commands[a] == _commands[first]);
 
             int result; // if a message is made up of (\d+ ?)+ try to parse it as a !card command
             if (_commands.ContainsKey("!card") && !parsed.Any(a => !int.TryParse(a, out result)))
