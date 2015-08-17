@@ -147,6 +147,12 @@ namespace CardsAgainstIRC3.Game.States
                     Manager.SendPrivate(user, "Invalid cards!");
                 }
 
+                if (cards.GroupBy(a => a).Any(a => a.Count() > 1))
+                {
+                    Manager.SendPrivate(user, "You can't use duplicates!");
+                    return;
+                }
+
                 user.ChosenCards = cards;
                 user.HasChosenCards = true;
 
