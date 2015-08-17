@@ -138,7 +138,7 @@ namespace CardsAgainstIRC3.Game.States
             else
             {
                 player.WantsToLeave = true;
-                Manager.SendPublic(player, "You will leave {0}once this round ends!", player.JoinReason);
+                Manager.SendPublic(player, "You will leave{0} once this round ends!", player.JoinReason);
             }
         }
 
