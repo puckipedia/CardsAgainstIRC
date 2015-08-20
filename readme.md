@@ -1,5 +1,5 @@
 # CardsAgainstIRCv3
-> `<PeNGu1N_oF_d00m> ​heddwch: <CardsAgainstIRC> 1: The logic hasn't exploded to` 
+> `<PeNGu1N_oF_d00m> ​heddwch: <CardsAgainstIRC> 1: The logic hasn't exploded too`
 
 Quick setup:
 
