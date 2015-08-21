@@ -142,13 +142,13 @@ namespace CardsAgainstIRC3.Game.States
             try
             {
                 int[] cards = arguments.Select(a => int.Parse(a)).ToArray();
-                if (cards.Min() < 0 || cards.Max() > user.Cards.Length || cards.Any(a => !user.Cards[a].HasValue))
+                if (cards.Length > 0 && (cards.Min() < 0 || cards.Max() > user.Cards.Length || cards.Any(a => !user.Cards[a].HasValue)))
                 {
                     Manager.SendPrivate(user, "Invalid cards!");
                     return;
                 }
 
-                if (cards.GroupBy(a => a).Any(a => a.Count() > 1))
+                if (cards.Length > 0 && cards.GroupBy(a => a).Any(a => a.Count() > 1))
                 {
                     Manager.SendPrivate(user, "You can't use duplicates!");
                     return;
