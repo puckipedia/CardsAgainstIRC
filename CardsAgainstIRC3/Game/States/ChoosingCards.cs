@@ -139,36 +139,50 @@ namespace CardsAgainstIRC3.Game.States
                 return;
             }
 
+            int[] cards = new int[] { };
             try
             {
-                int[] cards = arguments.Select(a => int.Parse(a)).ToArray();
-                if (cards.Length > 0 && (cards.Min() < 0 || cards.Max() > user.Cards.Length || cards.Any(a => !user.Cards[a].HasValue)))
-                {
-                    Manager.SendPrivate(user, "Invalid cards!");
-                    return;
-                }
-
-                if (cards.Length > 0 && cards.GroupBy(a => a).Any(a => a.Count() > 1))
-                {
-                    Manager.SendPrivate(user, "You can't use duplicates!");
-                    return;
-                }
-
-                user.ChosenCards = cards;
-                user.HasChosenCards = true;
-
-                Manager.SendPrivate(user, "You have chosen: {0}", Manager.CurrentBlackCard.Representation(user.ChosenCards.Select(a => user.Cards[a].Value)));
-
-                if (WaitingOnUsers.Contains(user))
-                {
-                    WaitingOnUsers.Remove(user);
-                    ChosenUsers.Add(user);
-                    CheckReady();
-                }
+                cards = arguments.Select(a => int.Parse(a)).ToArray();
             }
-            catch (Exception)
+            catch (FormatException)
             {
-                Manager.SendPrivate(user, "Invalid int!");
+                Manager.SendPrivate(user, "That's not an int!");
+                return;
+            }
+            catch (OverflowException)
+            {
+                Manager.SendPrivate(user, "Sorry, but you don't have that much cards!");
+                return;
+            }
+
+            if (cards.Length > 0 && (cards.Min() < 0 || cards.Max() > user.Cards.Length || cards.Any(a => !user.Cards[a].HasValue)))
+            {
+                Manager.SendPrivate(user, "Invalid cards!");
+                return;
+            }
+
+            if (cards.Length > 0 && cards.GroupBy(a => a).Any(a => a.Count() > 1))
+            {
+                Manager.SendPrivate(user, "You can't use duplicates!");
+                return;
+            }
+
+            if (cards.Length != Manager.CurrentBlackCard.Parts.Length - 1)
+            {
+                Manager.SendPrivate(user, "You haven't chosen enough cards!");
+                return;
+            }
+
+            user.ChosenCards = cards;
+            user.HasChosenCards = true;
+
+            Manager.SendPrivate(user, "You have chosen: {0}", Manager.CurrentBlackCard.Representation(user.ChosenCards.Select(a => user.Cards[a].Value)));
+
+            if (WaitingOnUsers.Contains(user))
+            {
+                WaitingOnUsers.Remove(user);
+                ChosenUsers.Add(user);
+                CheckReady();
             }
         }
 
