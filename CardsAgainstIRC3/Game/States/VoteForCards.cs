@@ -14,6 +14,7 @@ namespace CardsAgainstIRC3.Game.States
         { }
 
         public List<GameUser> ComradeOrder = null;
+        public List<GameUser> CardsetOrder = null;
         public Dictionary<Guid, Card[]> CardSets = new Dictionary<Guid, Card[]>();
         public Dictionary<Guid, List<int>> Votes = new Dictionary<Guid, List<int>>();
         public Random Random = new Random();
@@ -27,17 +28,18 @@ namespace CardsAgainstIRC3.Game.States
                 return;
             }
 
+            CardsetOrder = Manager.AllUsers.Where(a => a.Bot != null || a.HasChosenCards).OrderBy(a => Random.Next()).ToList();
             if (Manager.Mode == GameManager.GameMode.Czar)
                 ComradeOrder = new List<GameUser>() { Manager.CurrentCzar() };
             else
-                ComradeOrder = Manager.AllUsers.Where(a => a.Bot != null || a.HasChosenCards).OrderBy(a => Random.Next()).ToList();
+                ComradeOrder = CardsetOrder;
 
             Votes = ComradeOrder.Where(a => a.Bot == null).ToDictionary(a => a.Guid, a => (List<int>) null);
 
             int i = 0;
             Manager.SendToAll("Everyone has chosen! The card sets are: ({0} - your time to choose)", string.Join(", ", ComradeOrder.Where(a => a.Bot == null).Select(a => a.Nick)));
 
-            foreach (var or in ComradeOrder)
+            foreach (var or in CardsetOrder)
             {
                 if (or.Bot != null)
                     CardSets[or.Guid] = or.Bot.ResponseToCard(Manager.CurrentBlackCard);
@@ -57,7 +59,7 @@ namespace CardsAgainstIRC3.Game.States
             {
                 var count = TallyVotes(Dismissed);
                 if (count.Count() == 0)
-                    return ComradeOrder.Where(a => !Dismissed.Contains(a.Guid)).Select(a => a.Guid).ToList();
+                    return CardsetOrder.Where(a => !Dismissed.Contains(a.Guid)).Select(a => a.Guid).ToList();
                 var lowest = count.Min(a => a.Value);
                 if (lowest == count.Max(a => a.Value))
                     return count.Keys.ToList();
@@ -69,12 +71,12 @@ namespace CardsAgainstIRC3.Game.States
         {
             return Votes.Where(a => a.Value != null)
                 .Select(delegate(KeyValuePair<Guid, List<int>> a) {
-                    var values = a.Value.SkipWhile(b => dismissed.Contains(ComradeOrder[b].Guid));
+                    var values = a.Value.SkipWhile(b => dismissed.Contains(CardsetOrder[b].Guid));
                     return values.Count() == 0 ? -1 : values.First();
                 })
                 .Where(a => a != -1)
                 .GroupBy(a => a)
-                .ToDictionary(a => ComradeOrder[a.Key].Guid, a => a.Count());
+                .ToDictionary(a => CardsetOrder[a.Key].Guid, a => a.Count());
         }
 
         public override void TimeoutReached()
@@ -82,8 +84,8 @@ namespace CardsAgainstIRC3.Game.States
             if (Votes.Count(a => a.Value != null) == 0)
             {
                 Manager.SendToAll("Timeout has been reached! Noone won...");
-                Manager.SendToAll("Points: {0}", Manager.GetPoints(a => ComradeOrder.Contains(a) ? " (" + ComradeOrder.IndexOf(a) + ")" : ""));
-                foreach (var person in ComradeOrder)
+                Manager.SendToAll("Points: {0}", Manager.GetPoints(a => CardsetOrder.Contains(a) ? " (" + CardsetOrder.IndexOf(a) + ")" : ""));
+                foreach (var person in CardsetOrder)
                     person.ChosenCards = new int[] { };
                 Manager.StartState(new ChoosingCards(Manager));
             }
@@ -119,7 +121,7 @@ namespace CardsAgainstIRC3.Game.States
                     Manager.SendPrivate(user, "Out of range!");
                 else
                 {
-                    Votes[user.Guid] = order.Where(a => ComradeOrder[a] != user).ToList();
+                    Votes[user.Guid] = order.Where(a => CardsetOrder[a] != user).ToList();
                     SelectWinner();
                 }
             }
@@ -156,12 +158,12 @@ namespace CardsAgainstIRC3.Game.States
                 Manager.SendToAll(Manager.CurrentBlackCard.Representation(CardSets[winners.First().Guid]));
             }
             else
-                Manager.SendToAll("And the winners are... {0}!", string.Join(", ", winners.Select(a => a.Nick + " (" + ComradeOrder.IndexOf(a) + ")")));
+                Manager.SendToAll("And the winners are... {0}!", string.Join(", ", winners.Select(a => a.Nick + " (" + CardsetOrder.IndexOf(a) + ")")));
 
             foreach (var winner in winners)
                 winner.Points++;
 
-            Manager.SendToAll("Points: {0}", Manager.GetPoints(a => ComradeOrder.Contains(a) ? " (" + ComradeOrder.IndexOf(a) + ")" : ""));
+            Manager.SendToAll("Points: {0}", Manager.GetPoints(a => CardsetOrder.Contains(a) ? " (" + CardsetOrder.IndexOf(a) + ")" : ""));
 
             foreach (var person in Manager.AllUsers)
                 person.RemoveCards();
