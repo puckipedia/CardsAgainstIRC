@@ -130,8 +130,8 @@ namespace CardsAgainstIRC3.Game
             Manager.SendPrivate(user, "Commands: {0}", string.Join(", ", _commands.Keys));
         }
 
-        private Dictionary<string, Guid> _debugKeys = new Dictionary<string, Guid>();
-        private Dictionary<string, bool> _canDebug = new Dictionary<string, bool>();
+        private static Dictionary<string, Guid> _debugKeys = new Dictionary<string, Guid>();
+        private static Dictionary<string, bool> _canDebug = new Dictionary<string, bool>();
         private Engine _debugEngine = new Engine(a => a.AllowClr());
         private static Random _random = new Random();
 
