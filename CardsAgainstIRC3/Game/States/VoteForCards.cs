@@ -120,7 +120,7 @@ namespace CardsAgainstIRC3.Game.States
             try
             {
                 var order = arguments.Select(a => int.Parse(a));
-                if (order.Any(a => a < 0) || order.Any(a => a >= ComradeOrder.Count))
+                if (order.Any(a => a < 0) || order.Any(a => a >= CardsetOrder.Count))
                     Manager.SendPrivate(user, "Out of range!");
                 else
                 {
