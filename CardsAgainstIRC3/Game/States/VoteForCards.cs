@@ -112,7 +112,10 @@ namespace CardsAgainstIRC3.Game.States
                 return;
 
             if (!Votes.ContainsKey(user.Guid))
+            {
+                Manager.SendPrivate(nick, "You can't vote now!");
                 return;
+            }
 
             try
             {
