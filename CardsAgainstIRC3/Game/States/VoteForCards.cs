@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace CardsAgainstIRC3.Game.States
 {
 
-    public class SovietRussiaVote : Base
+    public class VoteForCards : Base
     {
-        public SovietRussiaVote(GameManager manager)
+        public VoteForCards(GameManager manager)
             : base(manager, 60)
         { }
 
@@ -20,13 +20,17 @@ namespace CardsAgainstIRC3.Game.States
 
         public override void Activate()
         {
-            ComradeOrder = Manager.AllUsers.Where(a => a.Bot != null || a.HasChosenCards).OrderBy(a => Random.Next()).ToList();
-            if (ComradeOrder.Count == 0)
+            if (!Manager.AllUsers.Any(a => a.Bot != null || a.HasChosenCards))
             {
                 Manager.SendToAll("Noone has chosen... Next round!");
                 Manager.StartState(new ChoosingCards(Manager));
                 return;
             }
+
+            if (Manager.Mode == GameManager.GameMode.Czar)
+                ComradeOrder = new List<GameUser>() { Manager.CurrentCzar() };
+            else
+                ComradeOrder = Manager.AllUsers.Where(a => a.Bot != null || a.HasChosenCards).OrderBy(a => Random.Next()).ToList();
 
             Votes = ComradeOrder.Where(a => a.Bot == null).ToDictionary(a => a.Guid, a => (List<int>) null);
 
@@ -92,7 +96,10 @@ namespace CardsAgainstIRC3.Game.States
         [Command("!status")]
         public void StatusCommand(string nick, IEnumerable<string> arguments)
         {
-            Manager.SendPublic(nick, "Waiting for comrade(s) {0} to choose...", string.Join(", ", Votes.Where(a => a.Value == null).Select(a => Manager.Resolve(a.Key).Nick)));
+            if (Manager.Mode == GameManager.GameMode.SovietRussia)
+                Manager.SendPublic(nick, "Waiting for comrade(s) {0} to choose...", string.Join(", ", Votes.Where(a => a.Value == null).Select(a => Manager.Resolve(a.Key).Nick)));
+            else
+                Manager.SendPublic(nick, "Waiting for czar {0} to choose...", string.Join(", ", Votes.Where(a => a.Value == null).Select(a => Manager.Resolve(a.Key).Nick)));
         }
 
         [Command("!card", "!pick", "!p")]

@@ -35,7 +35,6 @@ namespace CardsAgainstIRC3.Game.States
                 return;
             }
 
-            // XXX: Non-czar modes!
             foreach (var person in Manager.AllUsers)
             {
                 person.HasChosenCards = person.HasVoted = false;
@@ -94,20 +93,14 @@ namespace CardsAgainstIRC3.Game.States
             foreach (var person in WaitingOnUsers)
                 person.Points--;
 
-            if (Manager.Mode == GameManager.GameMode.Czar)
-                Manager.StartState(new CzarVote(Manager));
-            else
-                Manager.StartState(new SovietRussiaVote(Manager));
+            Manager.StartState(new VoteForCards(Manager));
         }
 
         private void CheckReady()
         {
             if (WaitingOnUsers.Count == 0)
             {
-                if (Manager.Mode == GameManager.GameMode.Czar)
-                    Manager.StartState(new CzarVote(Manager));
-                else
-                    Manager.StartState(new SovietRussiaVote(Manager));  
+                Manager.StartState(new VoteForCards(Manager));
             }
         }
 
