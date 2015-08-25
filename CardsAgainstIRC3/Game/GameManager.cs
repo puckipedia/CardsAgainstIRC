@@ -64,10 +64,29 @@ namespace CardsAgainstIRC3.Game
         public Card?[] Cards = new Card?[10];
         public int[] ChosenCards = new int[0];
         public int Points = 0;
-        public bool CanVote = false;
         public bool HasVoted = false;
         public bool HasChosenCards = false;
-        public bool CanChooseCards = false;
+
+        private bool? _canVote = null;
+        private bool? _canChooseCards = null;
+        public bool CanVote
+        {
+            get
+            {
+                return _canVote ?? (Bot == null ? false : Bot.CanVote);
+            }
+
+            set { _canVote = value; }
+        }
+        public bool CanChooseCards
+        {
+            get
+            {
+                return _canChooseCards ?? (Bot == null ? false : Bot.CanChooseCards);
+            }
+
+            set { _canChooseCards = value; }
+        }
         public bool WantsToLeave = false;
         public string JoinReason = "";
 

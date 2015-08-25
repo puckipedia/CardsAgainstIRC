@@ -28,13 +28,13 @@ namespace CardsAgainstIRC3.Game.States
                 return;
             }
 
-            CardsetOrder = Manager.AllUsers.Where(a => a.Bot != null || a.HasChosenCards).OrderBy(a => Random.Next()).ToList();
+            CardsetOrder = Manager.AllUsers.Where(a => (a.Bot != null && a.CanChooseCards) || a.HasChosenCards).OrderBy(a => Random.Next()).ToList();
             if (Manager.Mode == GameManager.GameMode.Czar)
                 ComradeOrder = new List<GameUser>() { Manager.CurrentCzar() };
             else
                 ComradeOrder = CardsetOrder;
 
-            Votes = ComradeOrder.Where(a => a.Bot == null).ToDictionary(a => a.Guid, a => (List<int>) null);
+            Votes = ComradeOrder.Where(a => a.Bot == null || (a.Bot != null && a.CanVote)).ToDictionary(a => a.Guid, a => (List<int>) null);
 
             int i = 0;
             Manager.SendToAll("Everyone has chosen! The card sets are: ({0} - your time to choose)", string.Join(", ", ComradeOrder.Where(a => a.Bot == null).Select(a => a.Nick)));
@@ -50,6 +50,13 @@ namespace CardsAgainstIRC3.Game.States
 
                 i++;
             }
+
+            foreach (var bot in ComradeOrder.Where(a => a.Bot != null && a.CanVote))
+            {
+                Votes[bot.Guid] = bot.Bot.WinningCardSet(CardsetOrder.Select(a => CardSets[a.Guid]).ToArray()).ToList();
+            }
+
+            SelectWinner();
         }
 
         public List<Guid> RunoffVoting()

@@ -21,6 +21,22 @@ namespace CardsAgainstIRC3.Game.Bots
             private set;
         }
 
+        public bool CanVote
+        {
+            get
+            {
+                return true;
+            }
+        }
+
+        public bool CanChooseCards
+        {
+            get
+            {
+                return true;
+            }
+        }
+
         public Rando(GameManager manager)
         {
             Manager = manager;
@@ -35,5 +51,12 @@ namespace CardsAgainstIRC3.Game.Bots
         {
             return Manager.TakeWhiteCards(blackCard.Parts.Length - 1).ToArray();
         }
+
+        public int[] WinningCardSet(Card[][] cards)
+        {
+            return Enumerable.Range(0, cards.Length).OrderBy(a => random.Next()).ToArray();
+        }
+
+        private static Random random = new Random();
     }
 }
