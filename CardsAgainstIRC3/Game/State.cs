@@ -23,6 +23,31 @@ namespace CardsAgainstIRC3.Game
         }
     }
 
+
+    [AttributeUsage(AttributeTargets.Method)]
+    public class CompoundCommandAttribute : Attribute
+    {
+        public string Name
+        {
+            get;
+            private set;
+        }
+
+        public string Subcommand
+        {
+            get;
+            private set;
+        }
+
+        public CompoundCommandAttribute(string name, string subcommand)
+        {
+            Name = name;
+            Subcommand = subcommand;
+        }
+    }
+
+
+
     public class State
     {
         public GameManager Manager
@@ -34,6 +59,7 @@ namespace CardsAgainstIRC3.Game
         public delegate void CommandDelegate(string user, IEnumerable<string> arguments);
 
         private Dictionary<string, CommandDelegate> _commands = new Dictionary<string, CommandDelegate>();
+        private Dictionary<string, Dictionary<string, CommandDelegate>> _compoundCommands = new Dictionary<string, Dictionary<string, CommandDelegate>>();
 
         public State(GameManager manager)
         {
@@ -47,6 +73,24 @@ namespace CardsAgainstIRC3.Game
                 {
                     _commands[command] = (CommandDelegate)method.CreateDelegate(typeof(CommandDelegate), this);
                 }
+            }
+
+            var compoundMethods = this.GetType().GetMethods().Where(a => a.GetCustomAttributes(typeof(CompoundCommandAttribute), true).Length > 0);
+            foreach (var compoundMethod in methods)
+            {
+                var attribute = compoundMethod.GetCustomAttributes(typeof(CompoundCommandAttribute), true).Cast<CompoundCommandAttribute>().First();
+                if (!_commands.ContainsKey(attribute.Name))
+                {
+                    _compoundCommands[attribute.Name] = new Dictionary<string, CommandDelegate>();
+                    _commands[attribute.Name] = new CommandDelegate(delegate (string user, IEnumerable<string> arguments)
+                    {
+                        string command = arguments.FirstOrDefault() ?? "list";
+                        if (_compoundCommands[attribute.Name].ContainsKey(command))
+                            _compoundCommands[attribute.Name][command](user, arguments.Count() > 0 ? arguments.Skip(1) : new string[0]);
+                    });
+                }
+
+                _compoundCommands[attribute.Name][attribute.Subcommand] = (CommandDelegate) compoundMethod.CreateDelegate(typeof(CommandDelegate), this);
             }
         }
 
@@ -103,13 +147,13 @@ namespace CardsAgainstIRC3.Game
             Manager.Reset();
         }
 
-        [Command("!bot.types")]
+        [CompoundCommand("!bot", "types")]
         public void BotsCommand(string user, IEnumerable<string> args)
         {
             Manager.SendPrivate(user, "bots: {0}", string.Join(",", GameManager.Bots.Keys));
         }
 
-        [Command("!deck.types")]
+        [CompoundCommand("!deck", "types")]
         public void CardSetsCommand(string user, IEnumerable<string> args)
         {
             Manager.SendPrivate(user, "cardsets: {0}", string.Join(",", GameManager.DeckTypes.Keys));
@@ -124,7 +168,7 @@ namespace CardsAgainstIRC3.Game
         }
 #endif
 
-        [Command("!command.list")]
+        [CompoundCommand("!command", "list")]
         public void CommandsCommand(string user, IEnumerable<string> args)
         {
             Manager.SendPrivate(user, "Commands: {0}", string.Join(", ", _commands.Keys));
