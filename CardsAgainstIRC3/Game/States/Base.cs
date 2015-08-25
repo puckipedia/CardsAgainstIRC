@@ -263,7 +263,26 @@ namespace CardsAgainstIRC3.Game.States
         [CompoundCommand("user", "list")]
         public void UsersCommand(string nick, IEnumerable<string> arguments)
         {
-            Manager.SendPrivate(nick, "Users: {0}", string.Join(", ", Manager.AllUsers.Select(a => a.Nick)));
+            Manager.SendPublic(nick, "Users: {0}", string.Join(", ", Manager.AllUsers.Select(a => a.Nick)));
+        }
+
+        [CompoundCommand("user", "info")]
+        public void UserInfoCommand(string nick, IEnumerable<string> arguments)
+        {
+            if (arguments.Count() != 1)
+            {
+                Manager.SendPrivate(nick, "Usage: !user.info nick");
+                return;
+            }
+
+            var user = Manager.Resolve(nick);
+            if (user == null)
+            {
+                Manager.SendPrivate(nick, "That nick doesn't exist!");
+                return;
+            }
+
+            Manager.SendPrivate(nick, "Nick: '{0}', Can vote: {1}, Can choose cards: {2}", user.Nick, user.CanVote, user.CanChooseCards);
         }
 
         [CompoundCommand("bot", "remove")]
