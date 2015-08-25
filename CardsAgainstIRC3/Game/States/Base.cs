@@ -286,6 +286,36 @@ namespace CardsAgainstIRC3.Game.States
             Manager.SendPrivate(nick, "Current Bots: {0}", string.Join(", ", Manager.AllUsers.Where(a => a.Bot != null).Select(a => a.Nick)));
         }
 
+        [CompoundCommand("bot", "vote")]
+        public void BotVoteCommand(string nick, IEnumerable<string> arguments)
+        {
+            if (arguments.Count() < 1 || arguments.Count() > 2)
+            {
+                Manager.SendPrivate(nick, "Usage: !bot vote bot_name [should_be_able_to_vote]");
+                return;
+            }
+
+            var bot = Manager.Resolve("<" + arguments.First() + ">");
+            if (bot == null)
+            {
+                Manager.SendPrivate(nick, "That is not a bot!");
+                return;
+            }
+
+            if (arguments.Count() == 2)
+            {
+                bot.CanVote = arguments.ElementAt(1).IsTruthy();
+                if (bot.CanVote && !bot.Bot.CanVote)
+                {
+                    Manager.SendPrivate(nick, "The bot doesn't support voting!");
+                    bot.CanVote = false;
+                    return;
+                }
+            }
+
+            Manager.SendPublic(nick, "<{0}> Can{1} vote.", arguments.First(), bot.CanVote ? "" : "not");
+        }
+
         [CompoundCommand("deckset", "add")]
         public void DecksetAddCommand(string nick, IEnumerable<string> arguments)
         {

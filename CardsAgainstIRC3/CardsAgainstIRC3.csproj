@@ -116,6 +116,7 @@
     <Compile Include="Game\States\VoteForCards.cs" />
     <Compile Include="Game\States\Inactive.cs" />
     <Compile Include="Game\States\WaitForJoin.cs" />
+    <Compile Include="Game\Utilities.cs" />
     <Compile Include="IRC\IRCMessage.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

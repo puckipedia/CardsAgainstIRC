@@ -90,7 +90,7 @@ namespace CardsAgainstIRC3.Game
                     });
                 }
 
-                _compoundCommands[attribute.Name][attribute.Subcommand] = (CommandDelegate) compoundMethod.CreateDelegate(typeof(CommandDelegate), this);
+                _commands[string.Format("{0}.{1}", attribute.Name, attribute.Subcommand)] = _compoundCommands[attribute.Name][attribute.Subcommand] = (CommandDelegate)compoundMethod.CreateDelegate(typeof(CommandDelegate), this);
             }
         }
 
