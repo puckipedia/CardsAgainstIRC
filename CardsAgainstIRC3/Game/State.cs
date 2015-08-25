@@ -76,7 +76,7 @@ namespace CardsAgainstIRC3.Game
             }
 
             var compoundMethods = this.GetType().GetMethods().Where(a => a.GetCustomAttributes(typeof(CompoundCommandAttribute), true).Length > 0);
-            foreach (var compoundMethod in methods)
+            foreach (var compoundMethod in compoundMethods)
             {
                 var attribute = compoundMethod.GetCustomAttributes(typeof(CompoundCommandAttribute), true).Cast<CompoundCommandAttribute>().First();
                 if (!_commands.ContainsKey(attribute.Name))
