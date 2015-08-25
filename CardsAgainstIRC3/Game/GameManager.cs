@@ -238,8 +238,6 @@ namespace CardsAgainstIRC3.Game
             var user = UserAdd("<" + name + ">");
             user.Bot = bot;
             bot.LinkedToUser(user);
-            user.CanChooseCards = true;
-            user.CanVote = false;
         }
 
         public void RemoveBot(string name)
