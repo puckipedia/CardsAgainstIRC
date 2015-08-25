@@ -220,7 +220,7 @@ namespace CardsAgainstIRC3.Game.States
             }
         }
 
-        [CompoundCommand("deck", "list")]
+        [CompoundCommand("!deck", "list")]
         public void DeckListCommand(string nick, IEnumerable<string> arguments)
         {
             var cardsets = Manager.CardSets;
@@ -232,7 +232,7 @@ namespace CardsAgainstIRC3.Game.States
             }
         }
 
-        [CompoundCommand("deck", "remove")]
+        [CompoundCommand("!deck", "remove")]
         public void DeckRemoveCommand(string nick, IEnumerable<string> arguments)
         {
             if (arguments.Count() == 0)
@@ -254,19 +254,19 @@ namespace CardsAgainstIRC3.Game.States
             }
         }
 
-        [CompoundCommand("deckset", "list")]
+        [CompoundCommand("!deckset", "list")]
         public void DecksetListCommand(string nick, IEnumerable<string> arguments)
         {
             Manager.SendPrivate(nick, "Deck sets: {0}", string.Join(", ", Manager.DefaultSets.Keys));
         }
 
-        [CompoundCommand("user", "list")]
+        [CompoundCommand("!user", "list")]
         public void UsersCommand(string nick, IEnumerable<string> arguments)
         {
             Manager.SendPublic(nick, "Users: {0}", string.Join(", ", Manager.AllUsers.Select(a => a.Nick)));
         }
 
-        [CompoundCommand("user", "info")]
+        [CompoundCommand("!user", "info")]
         public void UserInfoCommand(string nick, IEnumerable<string> arguments)
         {
             if (arguments.Count() != 1)
@@ -285,7 +285,7 @@ namespace CardsAgainstIRC3.Game.States
             Manager.SendPrivate(nick, "Nick: '{0}', Can vote: {1}, Can choose cards: {2}", user.Nick, user.CanVote, user.CanChooseCards);
         }
 
-        [CompoundCommand("bot", "remove")]
+        [CompoundCommand("!bot", "remove")]
         public void BotRemoveCommand(string nick, IEnumerable<string> arguments)
         {
             if (arguments.Count() == 0)
@@ -299,13 +299,13 @@ namespace CardsAgainstIRC3.Game.States
             Manager.SendPublic(nick, "Bots removed: {0}", string.Join(", ", arguments));
         }
 
-        [CompoundCommand("bot", "list")]
+        [CompoundCommand("!bot", "list")]
         public void BotListCommand(string nick, IEnumerable<string> arguments)
         {
             Manager.SendPrivate(nick, "Current Bots: {0}", string.Join(", ", Manager.AllUsers.Where(a => a.Bot != null).Select(a => a.Nick)));
         }
 
-        [CompoundCommand("bot", "vote")]
+        [CompoundCommand("!bot", "vote")]
         public void BotVoteCommand(string nick, IEnumerable<string> arguments)
         {
             if (arguments.Count() < 1 || arguments.Count() > 2)
@@ -335,7 +335,7 @@ namespace CardsAgainstIRC3.Game.States
             Manager.SendPublic(nick, "<{0}> Can{1} vote.", arguments.First(), bot.CanVote ? "" : "not");
         }
 
-        [CompoundCommand("deckset", "add")]
+        [CompoundCommand("!deckset", "add")]
         public void DecksetAddCommand(string nick, IEnumerable<string> arguments)
         {
             if (arguments.Count() == 0)
