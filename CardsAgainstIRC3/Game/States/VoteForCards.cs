@@ -144,7 +144,7 @@ namespace CardsAgainstIRC3.Game.States
             if (!Votes.ContainsKey(user.Guid))
                 return;
 
-            Votes[user.Guid] = new List<int>();
+            Votes.Remove(user.Guid);
             SelectWinner();
         }
 
@@ -187,18 +187,17 @@ namespace CardsAgainstIRC3.Game.States
 
         public override bool UserLeft(GameUser user, bool voluntarily)
         {
-            if (!voluntarily)
-                user.CanVote = user.CanChooseCards = false;
+            user.CanVote = user.CanChooseCards = false;
 
             if (!Votes.ContainsKey(user.Guid))
-                return false;
+                return !CardsetOrder.Contains(user);
 
             if (Votes[user.Guid] == null)
                 Votes.Remove(user.Guid);
 
             SelectWinner();
 
-            return false;
+            return true;
         }
     }
 }

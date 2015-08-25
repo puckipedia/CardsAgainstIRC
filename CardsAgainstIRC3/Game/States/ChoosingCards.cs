@@ -69,7 +69,7 @@ namespace CardsAgainstIRC3.Game.States
             if (WaitingOnUsers.Contains(user))
             {
                 WaitingOnUsers.Remove(user);
-                ChosenUsers.Add(user);
+                ChosenUsers.Remove(user);
                 user.HasChosenCards = false;
                 CheckReady();
             }
@@ -79,11 +79,10 @@ namespace CardsAgainstIRC3.Game.States
                 Manager.SendToAll("Czar left! Discarding round...");
                 foreach(var person in ChosenUsers)
                     person.ChosenCards = new int[] { };
-
                 Manager.StartState(new ChoosingCards(Manager));
             }
 
-            return false;
+            return true;
         }
 
         public override void TimeoutReached()
