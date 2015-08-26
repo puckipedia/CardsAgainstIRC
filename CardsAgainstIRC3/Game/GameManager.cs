@@ -407,7 +407,7 @@ namespace CardsAgainstIRC3.Game
             return _users[guid];
         }
 
-        private void renameUser(string from, string to)
+        public void RenameUser(string from, string to)
         {
             var user = Resolve(from);
             if (user == null)
@@ -456,7 +456,7 @@ namespace CardsAgainstIRC3.Game
             switch (msg.Command)
             {
                 case "NICK":
-                    renameUser(msg.Origin.Nick, msg.Arguments[0]);
+                    RenameUser(msg.Origin.Nick, msg.Arguments[0]);
                     break;
                 case "QUIT":
                     if (!_userMap.ContainsKey(msg.Origin.Nick))
