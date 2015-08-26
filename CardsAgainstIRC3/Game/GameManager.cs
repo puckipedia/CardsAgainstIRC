@@ -237,6 +237,7 @@ namespace CardsAgainstIRC3.Game
         {
             var user = UserAdd("<" + name + ">");
             user.Bot = bot;
+            user.CanVote = false;
             bot.LinkedToUser(user);
         }
 
