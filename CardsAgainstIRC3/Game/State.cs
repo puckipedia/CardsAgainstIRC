@@ -159,14 +159,15 @@ namespace CardsAgainstIRC3.Game
             Manager.SendPrivate(user, "cardsets: {0}", string.Join(",", GameManager.DeckTypes.Keys));
         }
 
-#if DEBUG
         [Command("!fake")]
         public void FakeCommand(string user, IEnumerable<string> args)
         {
+            if (!_canDebug.ContainsKey(user) || !_canDebug[user])
+                return;
+
             foreach (var arg in args)
                 Manager.AddMessage(new IRCMessage(arg));
         }
-#endif
 
         [CompoundCommand("!command", "list")]
         public void CommandsCommand(string user, IEnumerable<string> args)
