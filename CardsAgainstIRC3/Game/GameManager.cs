@@ -502,6 +502,7 @@ namespace CardsAgainstIRC3.Game
         private Thread _runloopThread;
         private void Runloop()
         {
+            DateTime start = DateTime.Now;
             while (true)
             {
                 try {
@@ -520,7 +521,7 @@ namespace CardsAgainstIRC3.Game
                         Reset();
                     Console.WriteLine(e);
                 }
-                _autoResetEvent.WaitOne(1000);
+                _autoResetEvent.WaitOne(((int)(DateTime.Now - start).TotalMilliseconds) % 1000);
                 _autoResetEvent.Reset();
             }
         }
