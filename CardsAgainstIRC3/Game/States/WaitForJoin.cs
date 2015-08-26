@@ -15,7 +15,7 @@ namespace CardsAgainstIRC3.Game.States
         [Command("!start")]
         public void StartCommand(string nick, IEnumerable<string> arguments)
         {
-            if (Manager.Users < 3)
+            if (Manager.Users < 3 || Manager.AllUsers.Count(a => a.CanVote) < 2 || Manager.AllUsers.Count(a => a.CanChooseCards) < 2)
             {
                 Manager.SendPublic(nick, "We don't have enough players!");
                 return;
