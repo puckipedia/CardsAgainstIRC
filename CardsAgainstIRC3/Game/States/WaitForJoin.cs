@@ -13,16 +13,16 @@ namespace CardsAgainstIRC3.Game.States
         { }
 
         [Command("!start")]
-        public void StartCommand(string nick, IEnumerable<string> arguments)
+        public void StartCommand(CommandContext context, IEnumerable<string> arguments)
         {
             if (Manager.Users < 3 || Manager.AllUsers.Count(a => a.CanVote) < 2 || Manager.AllUsers.Count(a => a.CanChooseCards) < 2)
             {
-                Manager.SendPublic(nick, "We don't have enough players!");
+                SendInContext(context, "We don't have enough players!");
                 return;
             }
             else if (Manager.CardSets.Sum(a => a.Item1.WhiteCards) == 0 || Manager.CardSets.Sum(a => a.Item1.BlackCards) == 0)
             {
-                Manager.SendPublic(nick, "Not enough cards to start the game!");
+                SendInContext(context, "Not enough cards to start the game!");
                 return;
             }
 

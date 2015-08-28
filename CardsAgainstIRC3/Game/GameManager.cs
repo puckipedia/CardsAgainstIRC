@@ -490,7 +490,7 @@ namespace CardsAgainstIRC3.Game
                             break;
                         }
 
-                        CurrentState.ReceivedMessage(msg.Origin.Nick, msg.Arguments[1]);
+                        CurrentState.ReceivedMessage(new CommandContext() { Nick = msg.Origin.Nick, Source = msg.Arguments[0] == _main.BotName ? CommandContext.CommandSource.PrivateMessage : CommandContext.CommandSource.PublicMessage }, msg.Arguments[1]);
                     }
                     break;
             }

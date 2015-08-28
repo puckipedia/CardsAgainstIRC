@@ -46,7 +46,26 @@ namespace CardsAgainstIRC3.Game
         }
     }
 
+    public class CommandContext
+    {
+        public string Nick
+        {
+            get;
+            set;
+        }
 
+        public enum CommandSource
+        {
+            PublicMessage,
+            PrivateMessage,
+        }
+
+        public CommandSource Source
+        {
+            get;
+            set;
+        }
+    }
 
     public class State
     {
@@ -56,10 +75,18 @@ namespace CardsAgainstIRC3.Game
             private set;
         }
 
-        public delegate void CommandDelegate(string user, IEnumerable<string> arguments);
+        public delegate void CommandDelegate(CommandContext context, IEnumerable<string> arguments);
 
         private Dictionary<string, CommandDelegate> _commands = new Dictionary<string, CommandDelegate>();
         private Dictionary<string, Dictionary<string, CommandDelegate>> _compoundCommands = new Dictionary<string, Dictionary<string, CommandDelegate>>();
+
+        public void SendInContext(CommandContext context, string format, params object[] args)
+        {
+            if (context.Source == CommandContext.CommandSource.PrivateMessage)
+                Manager.SendPrivate(context.Nick, format, args);
+            else
+                Manager.SendPublic(context.Nick, format, args);
+        }
 
         public State(GameManager manager)
         {
@@ -82,11 +109,11 @@ namespace CardsAgainstIRC3.Game
                 if (!_commands.ContainsKey(attribute.Name))
                 {
                     _compoundCommands[attribute.Name] = new Dictionary<string, CommandDelegate>();
-                    _commands[attribute.Name] = new CommandDelegate(delegate (string user, IEnumerable<string> arguments)
+                    _commands[attribute.Name] = new CommandDelegate(delegate (CommandContext context, IEnumerable<string> arguments)
                     {
                         string command = arguments.FirstOrDefault() ?? "list";
                         if (_compoundCommands[attribute.Name].ContainsKey(command))
-                            _compoundCommands[attribute.Name][command](user, arguments.Count() > 0 ? arguments.Skip(1) : new string[0]);
+                            _compoundCommands[attribute.Name][command](context, arguments.Count() > 0 ? arguments.Skip(1) : new string[0]);
                     });
                 }
 
@@ -94,7 +121,7 @@ namespace CardsAgainstIRC3.Game
             }
         }
 
-        public virtual bool ReceivedMessage(string nick, string message)
+        public virtual bool ReceivedMessage(CommandContext context, string message)
         {
             IEnumerable<string> parsed = GameManager.ParseCommandString(message);
 
@@ -111,7 +138,7 @@ namespace CardsAgainstIRC3.Game
                 arguments = parsed;
             }
 
-            return Command(nick, first, arguments);
+            return Command(context, first, arguments);
         }
 
         public virtual void Activate()
@@ -125,44 +152,44 @@ namespace CardsAgainstIRC3.Game
         public virtual void Tick()
         { }
 
-        internal virtual bool Command(string nick, string command, IEnumerable<string> arguments)
+        internal virtual bool Command(CommandContext context, string command, IEnumerable<string> arguments)
         {
             if (!_commands.ContainsKey(command))
                 return false;
 
-            _commands[command](nick, arguments);
+            _commands[command](context, arguments);
 
             return true;
         }
 
         [Command("!state")]
-        public void StateCommand(string user, IEnumerable<string> args)
+        public void StateCommand(CommandContext context, IEnumerable<string> args)
         {
-            Manager.SendPrivate(user, "Current state class is {0}", this.GetType());
+            SendInContext(context, "Current state class is {0}", this.GetType());
         }
 
         [Command("!kill")]
-        public void KillCommand(string user, IEnumerable<string> args)
+        public void KillCommand(CommandContext context, IEnumerable<string> args)
         {
             Manager.Reset();
         }
 
         [CompoundCommand("!bot", "types")]
-        public void BotsCommand(string user, IEnumerable<string> args)
+        public void BotsCommand(CommandContext context, IEnumerable<string> args)
         {
-            Manager.SendPrivate(user, "bots: {0}", string.Join(",", GameManager.Bots.Keys));
+            SendInContext(context, "bots: {0}", string.Join(",", GameManager.Bots.Keys));
         }
 
         [CompoundCommand("!deck", "types")]
-        public void CardSetsCommand(string user, IEnumerable<string> args)
+        public void CardSetsCommand(CommandContext context, IEnumerable<string> args)
         {
-            Manager.SendPrivate(user, "cardsets: {0}", string.Join(",", GameManager.DeckTypes.Keys));
+            SendInContext(context, "cardsets: {0}", string.Join(",", GameManager.DeckTypes.Keys));
         }
 
         [Command("!fake")]
-        public void FakeCommand(string user, IEnumerable<string> args)
+        public void FakeCommand(CommandContext context, IEnumerable<string> args)
         {
-            if (!_canDebug.ContainsKey(user) || !_canDebug[user])
+            if (!_canDebug.ContainsKey(context.Nick) || !_canDebug[context.Nick])
                 return;
 
             foreach (var arg in args)
@@ -170,9 +197,9 @@ namespace CardsAgainstIRC3.Game
         }
 
         [CompoundCommand("!command", "list")]
-        public void CommandsCommand(string user, IEnumerable<string> args)
+        public void CommandsCommand(CommandContext context, IEnumerable<string> args)
         {
-            Manager.SendPrivate(user, "Commands: {0}", string.Join(", ", _commands.Keys));
+            SendInContext(context, "Commands: {0}", string.Join(", ", _commands.Keys));
         }
 
         private static Dictionary<string, Guid> _debugKeys = new Dictionary<string, Guid>();
@@ -181,37 +208,37 @@ namespace CardsAgainstIRC3.Game
         private static Random _random = new Random();
 
         [Command("!debug")]
-        public void DebugCommand(string nick, IEnumerable<string> arguments)
+        public void DebugCommand(CommandContext context, IEnumerable<string> arguments)
         {
             if (arguments.Count() == 0)
             {
-                if (!_debugKeys.ContainsKey(nick))
+                if (!_debugKeys.ContainsKey(context.Nick))
                 {
                     byte[] buffer = new byte[16];
                     _random.NextBytes(buffer);
-                    _debugKeys[nick] = new Guid(buffer);
+                    _debugKeys[context.Nick] = new Guid(buffer);
                 }
-                Console.WriteLine("Debug key for {0}: {1}", nick, _debugKeys[nick]);
+                Console.WriteLine("Debug key for {0}: {1}", context.Nick, _debugKeys[context.Nick]);
                 return;
             }
 
-            if (arguments.Count() == 1 && _debugKeys.ContainsKey(nick) && (!_canDebug.ContainsKey(nick) || !_canDebug[nick]))
+            if (arguments.Count() == 1 && _debugKeys.ContainsKey(context.Nick) && (!_canDebug.ContainsKey(context.Nick) || !_canDebug[context.Nick]))
             {
                 try
                 {
-                    _canDebug[nick] = new Guid(arguments.First()) == _debugKeys[nick];
+                    _canDebug[context.Nick] = new Guid(arguments.First()) == _debugKeys[context.Nick];
                 }
                 catch (Exception)
-                { _debugKeys.Remove(nick); }
+                { _debugKeys.Remove(context.Nick); }
 
-                if (_canDebug.ContainsKey(nick) && _canDebug[nick])
-                    Console.WriteLine("Debug for {0} enabled", nick);
+                if (_canDebug.ContainsKey(context.Nick) && _canDebug[context.Nick])
+                    Console.WriteLine("Debug for {0} enabled", context.Nick);
                 else
-                    _debugKeys.Remove(nick);
+                    _debugKeys.Remove(context.Nick);
                 return;
             }
 
-            if (!_canDebug.ContainsKey(nick) || !_canDebug[nick])
+            if (!_canDebug.ContainsKey(context.Nick) || !_canDebug[context.Nick])
             {
                 return;
             }
@@ -222,24 +249,24 @@ namespace CardsAgainstIRC3.Game
             {
                 var obj = _debugEngine.Execute(argument).GetCompletionValue().ToObject();
                 if (obj != null)
-                    Manager.SendPrivate(nick, "{0}", obj);
+                    SendInContext(context, "{0}", obj);
             }
         }
 
         [Command("!as")]
-        public void AsCommand(string nick, IEnumerable<string> arguments)
+        public void AsCommand(CommandContext context, IEnumerable<string> arguments)
         {
-            if (!_canDebug.ContainsKey(nick) || !_canDebug[nick] || arguments.Count() < 2)
+            if (!_canDebug.ContainsKey(context.Nick) || !_canDebug[context.Nick] || arguments.Count() < 2)
                 return;
 
-            ReceivedMessage(arguments.First(), string.Join(" ", arguments.Skip(1)));
+            ReceivedMessage(new CommandContext() { Nick = arguments.First(), Source = context.Source }, string.Join(" ", arguments.Skip(1)));
         }
 
         [Command("!undebug")]
-        public void UndebugCommand(string nick, IEnumerable<string> arguments)
+        public void UndebugCommand(CommandContext context, IEnumerable<string> arguments)
         {
-            _debugKeys.Remove(nick);
-            _canDebug.Remove(nick);
+            _debugKeys.Remove(context.Nick);
+            _canDebug.Remove(context.Nick);
         }
         public virtual bool UserLeft(GameUser user, bool voluntarily)
         {

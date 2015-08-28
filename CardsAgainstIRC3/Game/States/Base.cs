@@ -22,11 +22,11 @@ namespace CardsAgainstIRC3.Game.States
         { Timeout = timeout; _lastTick = DateTime.Now; }
 
         [Command("!limit")]
-        public void LimitCommand(string nick, IEnumerable<string> arguments)
+        public void LimitCommand(CommandContext context, IEnumerable<string> arguments)
         {
             if (arguments.Count() == 0)
             {
-                Manager.SendPublic(nick, "The current limit is: {0}", Manager.Limit);
+                SendInContext(context, "The current limit is: {0}", Manager.Limit);
             }
             else
             {
@@ -34,11 +34,11 @@ namespace CardsAgainstIRC3.Game.States
                 if (int.TryParse(arguments.First(), out result))
                 {
                     Manager.Limit = result;
-                    Manager.SendPublic(nick, "Set the limit to {0}!", result);
+                    Manager.SendPublic(context.Nick, "Set the limit to {0}!", result);
                 }
                 else
                 {
-                    Manager.SendPublic(nick, "Failed to set the limit");
+                    SendInContext(context, "Failed to set the limit");
                 }
             }
         }
@@ -72,13 +72,13 @@ namespace CardsAgainstIRC3.Game.States
         }
 
         [Command("!delay")]
-        public void DelayCommand(string nick, IEnumerable<string> arguments)
+        public void DelayCommand(CommandContext context, IEnumerable<string> arguments)
         {
             Timeout += 20;
         }
 
         [Command("!undelay")]
-        public void UndelayCommand(string nick, IEnumerable<string> arguments)
+        public void UndelayCommand(CommandContext context, IEnumerable<string> arguments)
         {
             if (Timeout > 20)
                 Timeout -= 20;
@@ -87,26 +87,26 @@ namespace CardsAgainstIRC3.Game.States
         }
 
         [Command("!join")]
-        public void JoinCommand(string nick, IEnumerable<string> arguments)
+        public void JoinCommand(CommandContext context, IEnumerable<string> arguments)
         {
 
-            GameUser player = Manager.Resolve(nick);
+            GameUser player = Manager.Resolve(context.Nick);
             if (player == null)
             {
-                player = Manager.UserAdd(nick);
+                player = Manager.UserAdd(context.Nick);
                 player.CanChooseCards = player.CanVote = true;
                 Manager.UpdateCzars();
             }
             
             if (arguments.Count() > 0)
                 player.JoinReason = " " + string.Join(" ", arguments);
-            Manager.SendPublic(nick, "You joined{0}!", player.JoinReason);
+            Manager.SendPublic(context.Nick, "You joined{0}!", player.JoinReason);
         }
 
         [Command("!pause")]
-        public void PauseCommand(string nick, IEnumerable<string> arguments)
+        public void PauseCommand(CommandContext context, IEnumerable<string> arguments)
         {
-            var player = Manager.Resolve(nick);
+            var player = Manager.Resolve(context.Nick);
             if (player == null)
                 return;
 
@@ -114,9 +114,9 @@ namespace CardsAgainstIRC3.Game.States
         }
 
         [Command("!resume")]
-        public void ResumeCommand(string nick, IEnumerable<string> arguments)
+        public void ResumeCommand(CommandContext context, IEnumerable<string> arguments)
         {
-            var player = Manager.Resolve(nick);
+            var player = Manager.Resolve(context.Nick);
             if (player == null)
                 return;
 
@@ -124,16 +124,16 @@ namespace CardsAgainstIRC3.Game.States
         }
 
         [Command("!leave")]
-        public void LeaveCommand(string nick, IEnumerable<string> arguments)
+        public void LeaveCommand(CommandContext context, IEnumerable<string> arguments)
         {
-            var player = Manager.Resolve(nick);
+            var player = Manager.Resolve(context.Nick);
             if (player == null)
                 return;
 
             if (UserLeft(player, true))
             {
-                Manager.UserQuit(nick);
-                Manager.SendPublic(nick, "You left{0}!", player.JoinReason);
+                Manager.UserQuit(context.Nick);
+                Manager.SendPublic(context.Nick, "You left{0}!", player.JoinReason);
             }
             else
             {
@@ -143,75 +143,75 @@ namespace CardsAgainstIRC3.Game.States
         }
 
         [CompoundCommand("!bot", "add")]
-        public void BotAddCommand(string nick, IEnumerable<string> arguments)
+        public void BotAddCommand(CommandContext context, IEnumerable<string> arguments)
         {
             if (arguments.Count() < 1 || arguments.Count() > 2)
             {
-                Manager.SendPrivate(nick, "Usage: !bot add name [nick]");
+                SendInContext(context, "Usage: !bot add name [nick]");
                 return;
             }
 
             string botID = arguments.ElementAt(0);
             if (!GameManager.Bots.ContainsKey(botID))
             {
-                Manager.SendPrivate(nick, "Invalid bot!");
+                SendInContext(context, "Invalid bot!");
                 return;
             }
 
             string botNick = arguments.ElementAtOrDefault(1) ?? botID;
 
             Manager.AddBot(botNick, (IBot)GameManager.Bots[botID].GetConstructor(new Type[] { typeof(GameManager) }).Invoke(new object[] { Manager }));
-            Manager.SendPublic(nick, "Added <{0}> (a bot of type {1})", botNick, botID);
+            Manager.SendPublic(context.Nick, "Added <{0}> (a bot of type {1})", botNick, botID);
         }
 
         [CompoundCommand("!deck", "add")]
-        public void DeckAddCommand(string nick, IEnumerable<string> arguments)
+        public void DeckAddCommand(CommandContext context, IEnumerable<string> arguments)
         {
             if (arguments.Count() < 1)
             {
-                Manager.SendPrivate(nick, "Usage: !deck.add name [arguments...]");
+                SendInContext(context, "Usage: !deck.add name [arguments...]");
                 return;
             }
 
             string cardsetID = arguments.ElementAt(0);
             if (!GameManager.DeckTypes.ContainsKey(cardsetID))
             {
-                Manager.SendPrivate(nick, "Invalid deck type!");
+                SendInContext(context, "Invalid deck type!");
                 return;
             }
 
             var cardSet = (IDeckType)GameManager.DeckTypes[cardsetID].GetConstructor(new Type[] { typeof(GameManager), typeof(IEnumerable<string>) }).Invoke(new object[] { Manager, arguments.Skip(1) });
             Manager.AddCardSet(cardSet);
-            Manager.SendPublic(nick, "Added {0}", cardSet.Description);
+            Manager.SendPublic(context.Nick, "Added {0}", cardSet.Description);
         }
 
         [CompoundCommand("!deck", "weight")]
-        public void DeckWeightCommand(string nick, IEnumerable<string> arguments)
+        public void DeckWeightCommand(CommandContext context, IEnumerable<string> arguments)
         {
             if (arguments.Count() > 2 || arguments.Count() == 0)
             {
-                Manager.SendPrivate(nick, "Usage: !deck.weight deck [weight]");
+                SendInContext(context, "Usage: !deck.weight deck [weight]");
                 return;
             }
 
             int deck;
             if (!int.TryParse(arguments.First(), out deck) || deck < 0 || deck >= Manager.CardSets.Count)
             {
-                Manager.SendPrivate(nick, "Out of range!");
+                SendInContext(context, "Out of range!");
                 return;
             }
 
             if (arguments.Count() == 1)
             {
                 var deckinfo = Manager.CardSets[deck];
-                Manager.SendPrivate(nick, "Weight of {0} is {1}", deckinfo.Item1.Description, deckinfo.Item2);
+                SendInContext(context, "Weight of {0} is {1}", deckinfo.Item1.Description, deckinfo.Item2);
             }
             else
             {
                 int weight;
                 if (!int.TryParse(arguments.ElementAt(1), out weight) || weight < 1)
                 {
-                    Manager.SendPrivate(nick, "Weight is out of range!");
+                    SendInContext(context, "Weight is out of range!");
                     return;
                 }
 
@@ -221,23 +221,23 @@ namespace CardsAgainstIRC3.Game.States
         }
 
         [CompoundCommand("!deck", "list")]
-        public void DeckListCommand(string nick, IEnumerable<string> arguments)
+        public void DeckListCommand(CommandContext context, IEnumerable<string> arguments)
         {
             var cardsets = Manager.CardSets;
             int i = 0;
             foreach (var set in cardsets)
             {
-                Manager.SendToAll("{0}. \x02{1}\x02 (weight {2})", i, set.Item1.Description, set.Item2);
+                SendInContext(context, "{0}. \x02{1}\x02 (weight {2})", i, set.Item1.Description, set.Item2);
                 i++;
             }
         }
 
         [CompoundCommand("!deck", "remove")]
-        public void DeckRemoveCommand(string nick, IEnumerable<string> arguments)
+        public void DeckRemoveCommand(CommandContext context, IEnumerable<string> arguments)
         {
             if (arguments.Count() == 0)
             {
-                Manager.SendPrivate(nick, "Usage: !deck.remove num [num2...]");
+                SendInContext(context, "Usage: !deck.remove num [num2...]");
                 return;
             }
 
@@ -245,79 +245,79 @@ namespace CardsAgainstIRC3.Game.States
             {
                 var toremove = arguments.Select(a => Manager.CardSets[int.Parse(a)]);
                 Manager.CardSets.RemoveAll(a => toremove.Contains(a));
-                Manager.SendPublic(nick, "Removed card sets!");
+                Manager.SendPublic(context.Nick, "Removed card sets!");
             }
             catch (Exception e)
             {
-                Manager.SendPublic(nick, "Failed to remove {0} card sets!", arguments.Count());
+                SendInContext(context, "Failed to remove {0} card sets!", arguments.Count());
                 Console.WriteLine(e);
             }
         }
 
         [CompoundCommand("!deckset", "list")]
-        public void DecksetListCommand(string nick, IEnumerable<string> arguments)
+        public void DecksetListCommand(CommandContext context, IEnumerable<string> arguments)
         {
-            Manager.SendPrivate(nick, "Deck sets: {0}", string.Join(", ", Manager.DefaultSets.Keys));
+            SendInContext(context, "Deck sets: {0}", string.Join(", ", Manager.DefaultSets.Keys));
         }
 
         [CompoundCommand("!user", "list")]
-        public void UsersCommand(string nick, IEnumerable<string> arguments)
+        public void UsersCommand(CommandContext context, IEnumerable<string> arguments)
         {
-            Manager.SendPublic(nick, "Users: {0}", string.Join(", ", Manager.AllUsers.Select(a => a.Nick)));
+            SendInContext(context, "Users: {0}", string.Join(", ", Manager.AllUsers.Select(a => a.Nick)));
         }
 
         [CompoundCommand("!user", "info")]
-        public void UserInfoCommand(string nick, IEnumerable<string> arguments)
+        public void UserInfoCommand(CommandContext context, IEnumerable<string> arguments)
         {
             if (arguments.Count() != 1)
             {
-                Manager.SendPrivate(nick, "Usage: !user.info nick");
+                SendInContext(context, "Usage: !user.info nick");
                 return;
             }
 
-            var user = Manager.Resolve(nick);
+            var user = Manager.Resolve(context.Nick);
             if (user == null)
             {
-                Manager.SendPrivate(nick, "That nick doesn't exist!");
+                SendInContext(context, "That nick doesn't exist!");
                 return;
             }
 
-            Manager.SendPrivate(nick, "Nick: '{0}', Can vote: {1}, Can choose cards: {2}", user.Nick, user.CanVote, user.CanChooseCards);
+            SendInContext(context, "Nick: '{0}', Can vote: {1}, Can choose cards: {2}", user.Nick, user.CanVote, user.CanChooseCards);
         }
 
         [CompoundCommand("!bot", "remove")]
-        public void BotRemoveCommand(string nick, IEnumerable<string> arguments)
+        public void BotRemoveCommand(CommandContext context, IEnumerable<string> arguments)
         {
             if (arguments.Count() == 0)
-                Manager.SendPrivate(nick, "Usage: !bot.remove name (without <>)");
+                SendInContext(context, "Usage: !bot.remove name (without <>)");
 
             foreach (var bot in arguments)
             {
                 Manager.RemoveBot(bot);
             }
 
-            Manager.SendPublic(nick, "Bots removed: {0}", string.Join(", ", arguments));
+            Manager.SendPublic(context.Nick, "Bots removed: {0}", string.Join(", ", arguments));
         }
 
         [CompoundCommand("!bot", "list")]
-        public void BotListCommand(string nick, IEnumerable<string> arguments)
+        public void BotListCommand(CommandContext context, IEnumerable<string> arguments)
         {
-            Manager.SendPrivate(nick, "Current Bots: {0}", string.Join(", ", Manager.AllUsers.Where(a => a.Bot != null).Select(a => a.Nick)));
+            SendInContext(context, "Current Bots: {0}", string.Join(", ", Manager.AllUsers.Where(a => a.Bot != null).Select(a => a.Nick)));
         }
 
         [CompoundCommand("!bot", "vote")]
-        public void BotVoteCommand(string nick, IEnumerable<string> arguments)
+        public void BotVoteCommand(CommandContext context, IEnumerable<string> arguments)
         {
             if (arguments.Count() < 1 || arguments.Count() > 2)
             {
-                Manager.SendPrivate(nick, "Usage: !bot vote bot_name [should_be_able_to_vote]");
+                SendInContext(context, "Usage: !bot vote bot_name [should_be_able_to_vote]");
                 return;
             }
 
             var bot = Manager.Resolve("<" + arguments.First() + ">");
             if (bot == null)
             {
-                Manager.SendPrivate(nick, "That is not a bot!");
+                SendInContext(context, "That is not a bot!");
                 return;
             }
 
@@ -326,17 +326,17 @@ namespace CardsAgainstIRC3.Game.States
                 bot.CanVote = arguments.ElementAt(1).IsTruthy();
                 if (bot.CanVote && !bot.Bot.CanVote)
                 {
-                    Manager.SendPrivate(nick, "The bot doesn't support voting!");
+                    SendInContext(context, "The bot doesn't support voting!");
                     bot.CanVote = false;
                     return;
                 }
             }
 
-            Manager.SendPublic(nick, "<{0}> Can{1} vote.", arguments.First(), bot.CanVote ? "" : "not");
+            Manager.SendPublic(context.Nick, "<{0}> Can{1} vote.", arguments.First(), bot.CanVote ? "" : "not");
         }
 
         [CompoundCommand("!deckset", "add")]
-        public void DecksetAddCommand(string nick, IEnumerable<string> arguments)
+        public void DecksetAddCommand(CommandContext context, IEnumerable<string> arguments)
         {
             if (arguments.Count() == 0)
                 arguments = new string[] { "default" };
@@ -349,22 +349,22 @@ namespace CardsAgainstIRC3.Game.States
                     {
                         Manager.AddCardSet((IDeckType)GameManager.DeckTypes[list[0]].GetConstructor(new Type[] { typeof(GameManager), typeof(IEnumerable<string>) }).Invoke(new object[] { Manager, list.Skip(1) }));
                     }
-                    Manager.SendPublic(nick, "Added deck {0}", def.Item1);
+                    Manager.SendPublic(context.Nick, "Added deck {0}", def.Item1);
                 }
             }
             catch (Exception e)
             {
-                Manager.SendPublic(nick, "Failed to add deckset");
+                SendInContext(context, "Failed to add deckset");
                 Console.WriteLine(e);
             }
         }
 
         [Command("!mode")]
-        public void ModeCommand(string nick, IEnumerable<string> arguments)
+        public void ModeCommand(CommandContext context, IEnumerable<string> arguments)
         {
             if (arguments.Count() != 1)
             {
-                Manager.SendPublic(nick, "Current mode: {0}", Manager.Mode.ToString());
+                SendInContext(context, "Current mode: {0}", Manager.Mode.ToString());
                 return;
             }
 
@@ -372,16 +372,16 @@ namespace CardsAgainstIRC3.Game.States
             if (mode == "czar")
             {
                 Manager.Mode = GameManager.GameMode.Czar;
-                Manager.SendPublic(nick, "Mode set to Czar!");
+                Manager.SendPublic(context.Nick, "Mode set to Czar!");
             }
             else if (mode == "soviet")
             {
                 Manager.Mode = GameManager.GameMode.SovietRussia;
-                Manager.SendPublic(nick, "Mode set to Soviet Russia!");
+                Manager.SendPublic(context.Nick, "Mode set to Soviet Russia!");
             }
             else
             {
-                Manager.SendPrivate(nick, "Usage: !mode {czar,soviet}");
+                SendInContext(context, "Usage: !mode {czar,soviet}");
             }
         }
     }

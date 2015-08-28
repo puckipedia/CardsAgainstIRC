@@ -14,10 +14,10 @@ namespace CardsAgainstIRC3.Game.States
 
 
         [Command("!start")]
-        public void StartCommand(string nick, IEnumerable<string> arguments)
+        public void StartCommand(CommandContext context, IEnumerable<string> arguments)
         {
-            Manager.SendToAll("{0} started a game! | send !join to join!", nick);
-            var started = Manager.UserAdd(nick);
+            Manager.SendToAll("{0} started a game! | send !join to join!", context.Nick);
+            var started = Manager.UserAdd(context.Nick);
             started.CanChooseCards = started.CanVote = true;
             Manager.UpdateCzars();
             Manager.Data["started"] = started;

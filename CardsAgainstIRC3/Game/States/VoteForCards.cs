@@ -103,24 +103,24 @@ namespace CardsAgainstIRC3.Game.States
         }
 
         [Command("!status")]
-        public void StatusCommand(string nick, IEnumerable<string> arguments)
+        public void StatusCommand(CommandContext context, IEnumerable<string> arguments)
         {
             if (Manager.Mode == GameManager.GameMode.SovietRussia)
-                Manager.SendPublic(nick, "Waiting for comrade(s) {0} to choose...", string.Join(", ", Votes.Where(a => a.Value == null).Select(a => Manager.Resolve(a.Key).Nick)));
+                SendInContext(context, "Waiting for comrade(s) {0} to choose...", string.Join(", ", Votes.Where(a => a.Value == null).Select(a => Manager.Resolve(a.Key).Nick)));
             else
-                Manager.SendPublic(nick, "Waiting for czar {0} to choose...", string.Join(", ", Votes.Where(a => a.Value == null).Select(a => Manager.Resolve(a.Key).Nick)));
+                SendInContext(context, "Waiting for czar {0} to choose...", string.Join(", ", Votes.Where(a => a.Value == null).Select(a => Manager.Resolve(a.Key).Nick)));
         }
 
         [Command("!card", "!pick", "!p")]
-        public void CardCommand(string nick, IEnumerable<string> arguments)
+        public void CardCommand(CommandContext context, IEnumerable<string> arguments)
         {
-            var user = Manager.Resolve(nick);
+            var user = Manager.Resolve(context.Nick);
             if (user == null)
                 return;
 
             if (!Votes.ContainsKey(user.Guid))
             {
-                Manager.SendPrivate(nick, "You can't vote now!");
+                Manager.SendPrivate(user, "You can't vote now!");
                 return;
             }
 
@@ -131,7 +131,11 @@ namespace CardsAgainstIRC3.Game.States
                     Manager.SendPrivate(user, "Out of range!");
                 else
                 {
+                    if (Votes[user.Guid] == null && Votes.Count(a => a.Value == null) > 1)
+                        Manager.SendToAll("{0} has chosen!", user.Nick);
+
                     Votes[user.Guid] = order.Where(a => CardsetOrder[a] != user).ToList();
+
                     SelectWinner();
                 }
             }
@@ -142,9 +146,9 @@ namespace CardsAgainstIRC3.Game.States
         }
 
         [Command("!skip")]
-        public void SkipCommand(string nick, IEnumerable<string> arguments)
+        public void SkipCommand(CommandContext context, IEnumerable<string> arguments)
         {
-            var user = Manager.Resolve(nick);
+            var user = Manager.Resolve(context.Nick);
             if (user == null)
                 return;
 

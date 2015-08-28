@@ -104,9 +104,9 @@ namespace CardsAgainstIRC3.Game.States
         }
 
         [Command("!cards")]
-        public void CardsCommand(string nick, IEnumerable<string> arguments)
+        public void CardsCommand(CommandContext context, IEnumerable<string> arguments)
         {
-            var user = Manager.Resolve(nick);
+            var user = Manager.Resolve(context.Nick);
             if (user == null)
                 return;
 
@@ -114,9 +114,9 @@ namespace CardsAgainstIRC3.Game.States
         }
 
         [Command("!card", "!pick", "!p")]
-        public void CardCommand(string nick, IEnumerable<string> arguments)
+        public void CardCommand(CommandContext context, IEnumerable<string> arguments)
         {
-            var user = Manager.Resolve(nick);
+            var user = Manager.Resolve(context.Nick);
             if (user == null)
                 return;
             if (!WaitingOnUsers.Contains(user) && !ChosenUsers.Contains(user))
@@ -170,6 +170,9 @@ namespace CardsAgainstIRC3.Game.States
 
             Manager.SendPrivate(user, "You have chosen: {0}", Manager.CurrentBlackCard.Representation(user.ChosenCards.Select(a => user.Cards[a].Value)));
 
+            if (context.Source == CommandContext.CommandSource.PrivateMessage)
+                Manager.SendToAll("{0} has chosen!", user.Nick);
+
             if (WaitingOnUsers.Contains(user))
             {
                 WaitingOnUsers.Remove(user);
@@ -179,19 +182,23 @@ namespace CardsAgainstIRC3.Game.States
         }
 
         [Command("!status")]
-        public void StatusCommand(string nick, IEnumerable<string> arguments)
+        public void StatusCommand(CommandContext context, IEnumerable<string> arguments)
         {
-            Manager.SendPublic(nick, "Waiting for {0} to choose", string.Join(", ", WaitingOnUsers.Select(a => a.Nick)));
+            SendInContext(context, "Waiting for {0} to choose", string.Join(", ", WaitingOnUsers.Select(a => a.Nick)));
         }
 
         [Command("!skip")]
-        public void SkipCommand(string nick, IEnumerable<string> arguments)
+        public void SkipCommand(CommandContext context, IEnumerable<string> arguments)
         {
-            var user = Manager.Resolve(nick);
+            var user = Manager.Resolve(context.Nick);
             if (user == null || (!WaitingOnUsers.Contains(user) && !ChosenUsers.Contains(user)))
                 return;
 
             user.HasChosenCards = false;
+
+            if (context.Source == CommandContext.CommandSource.PrivateMessage)
+                Manager.SendToAll("{0} has chosen!", user.Nick);
+
             if (WaitingOnUsers.Contains(user))
             {
                 WaitingOnUsers.Remove(user);
