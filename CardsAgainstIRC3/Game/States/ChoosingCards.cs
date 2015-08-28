@@ -170,11 +170,11 @@ namespace CardsAgainstIRC3.Game.States
 
             Manager.SendPrivate(user, "You have chosen: {0}", Manager.CurrentBlackCard.Representation(user.ChosenCards.Select(a => user.Cards[a].Value)));
 
-            if (context.Source == CommandContext.CommandSource.PrivateMessage)
-                Manager.SendToAll("{0} has chosen!", user.Nick);
-
             if (WaitingOnUsers.Contains(user))
             {
+                if (context.Source == CommandContext.CommandSource.PrivateMessage && WaitingOnUsers.Count > 1)
+                    Manager.SendToAll("{0} has chosen!", user.Nick);
+
                 WaitingOnUsers.Remove(user);
                 ChosenUsers.Add(user);
                 CheckReady();
@@ -196,11 +196,11 @@ namespace CardsAgainstIRC3.Game.States
 
             user.HasChosenCards = false;
 
-            if (context.Source == CommandContext.CommandSource.PrivateMessage)
-                Manager.SendToAll("{0} has chosen!", user.Nick);
-
             if (WaitingOnUsers.Contains(user))
             {
+                if (context.Source == CommandContext.CommandSource.PrivateMessage && WaitingOnUsers.Count > 1)
+                    Manager.SendToAll("{0} has chosen!", user.Nick);
+
                 WaitingOnUsers.Remove(user);
                 ChosenUsers.Add(user);
                 CheckReady();
