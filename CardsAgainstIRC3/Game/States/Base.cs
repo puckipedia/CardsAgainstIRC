@@ -145,9 +145,9 @@ namespace CardsAgainstIRC3.Game.States
         [CompoundCommand("!bot", "add")]
         public void BotAddCommand(CommandContext context, IEnumerable<string> arguments)
         {
-            if (arguments.Count() < 1 || arguments.Count() > 2)
+            if (arguments.Count() < 1)
             {
-                SendInContext(context, "Usage: !bot add name [nick]");
+                SendInContext(context, "Usage: !bot add name [nick [arguments]]");
                 return;
             }
 
@@ -160,8 +160,15 @@ namespace CardsAgainstIRC3.Game.States
 
             string botNick = arguments.ElementAtOrDefault(1) ?? botID;
 
-            Manager.AddBot(botNick, (IBot)GameManager.Bots[botID].GetConstructor(new Type[] { typeof(GameManager) }).Invoke(new object[] { Manager }));
-            Manager.SendPublic(context.Nick, "Added <{0}> (a bot of type {1})", botNick, botID);
+            try
+            {
+                Manager.AddBot(botNick, (IBot)GameManager.Bots[botID].GetConstructor(new Type[] { typeof(GameManager), typeof(IEnumerable<string>) }).Invoke(new object[] { Manager, arguments.Skip(2) }));
+                Manager.SendPublic(context.Nick, "Added <{0}> (a bot of type {1})", botNick, botID);
+            }
+            catch (ArgumentException e)
+            {
+                SendInContext(context, "Error adding {0}: {1}", botNick, e.Message);
+            }
         }
 
         [CompoundCommand("!deck", "add")]

@@ -37,7 +37,7 @@ namespace CardsAgainstIRC3.Game.Bots
             }
         }
 
-        public Rando(GameManager manager)
+        public Rando(GameManager manager, IEnumerable<string> args)
         {
             Manager = manager;
         }

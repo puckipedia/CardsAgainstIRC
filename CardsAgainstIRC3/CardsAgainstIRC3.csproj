@@ -98,6 +98,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Game\Bots\BotAttribute.cs" />
+    <Compile Include="Game\Bots\Randkov.cs" />
     <Compile Include="Game\Bots\Rando.cs" />
     <Compile Include="Game\Card.cs" />
     <Compile Include="Game\DeckTypes\CardCast.cs" />
