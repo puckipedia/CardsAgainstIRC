@@ -27,7 +27,7 @@ namespace CardsAgainstIRC3.Game.Bots
                             _data[previous] = new List<string>();
                         _data[previous].Add(item);
                     }
-                    previous = item;
+                    previous = item.ToLower();
                 }
 
                 if (!_data.ContainsKey(previous))
@@ -41,7 +41,7 @@ namespace CardsAgainstIRC3.Game.Bots
                 while (pointer != null)
                 {
                     yield return pointer;
-                    pointer = _data[pointer][random.Next(_data[pointer].Count)];
+                    pointer = _data[pointer.ToLower()][random.Next(_data[pointer.ToLower()].Count)];
                 }
             }
         }
