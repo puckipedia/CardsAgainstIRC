@@ -107,6 +107,7 @@
     <Compile Include="Game\DeckTypes\BlackCard.cs" />
     <Compile Include="Game\DeckTypes\Users.cs" />
     <Compile Include="Game\DeckTypes\WhiteCard.cs" />
+    <Compile Include="Game\DeckTypes\SubSet.cs" />
     <Compile Include="Game\IDeckType.cs" />
     <Compile Include="Game\GameManager.cs" />
     <Compile Include="Game\GameOutput.cs" />
