@@ -151,7 +151,7 @@ namespace CardsAgainstIRC3.Game.States
                 return;
             }
 
-            if (cards.Length > 0 && (cards.Min() < 0 || cards.Max() > user.Cards.Length || cards.Any(a => !user.Cards[a].HasValue)))
+            if (cards.Length > 0 && (cards.Min() < 0 || cards.Max() >= user.Cards.Length || cards.Any(a => !user.Cards[a].HasValue)))
             {
                 Manager.SendPrivate(user, "Invalid cards!");
                 return;
