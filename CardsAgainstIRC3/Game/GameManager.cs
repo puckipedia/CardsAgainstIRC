@@ -281,12 +281,6 @@ namespace CardsAgainstIRC3.Game
             CardSets.RemoveAll(a => a.Item1 == set);
         }
 
-        [Obsolete("Does not do fucking anything atm")]
-        public void ShuffleCards()
-        {
-        }
-
-
         public void SendToAll(string Message, params object[] args)
         {
             _output.SendToAll(Channel, Message, args);
