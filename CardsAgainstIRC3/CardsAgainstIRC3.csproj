@@ -105,6 +105,7 @@
     <Compile Include="Game\DeckTypes\DeckTypeAttribute.cs" />
     <Compile Include="Game\DeckTypes\HitlersTesticleDeckType.cs" />
     <Compile Include="Game\DeckTypes\BlackCard.cs" />
+    <Compile Include="Game\DeckTypes\Markov.cs" />
     <Compile Include="Game\DeckTypes\Users.cs" />
     <Compile Include="Game\DeckTypes\WhiteCard.cs" />
     <Compile Include="Game\DeckTypes\SubSet.cs" />
@@ -112,6 +113,7 @@
     <Compile Include="Game\GameManager.cs" />
     <Compile Include="Game\GameOutput.cs" />
     <Compile Include="Game\IBot.cs" />
+    <Compile Include="Game\MarkovGenerator.cs" />
     <Compile Include="Game\State.cs" />
     <Compile Include="Game\States\Base.cs" />
     <Compile Include="Game\States\ChoosingCards.cs" />
