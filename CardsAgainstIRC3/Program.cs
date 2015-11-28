@@ -128,6 +128,9 @@ namespace CardsAgainstIRC3
                     Managers[msg.Arguments[0]] = Game.GameManager.CreateManager(this, this, msg.Arguments[0]);
                 }
 
+                if (msg.Command == "NICK" && msg.Origin.Nick == BotName)
+                    BotName = msg.Arguments[0];
+
                 if (msg.Command == "PING")
                 {
                     msg.Command = "PONG";
