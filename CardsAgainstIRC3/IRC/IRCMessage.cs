@@ -87,7 +87,7 @@ namespace CardsAgainstIRC3
             {
                 if (lastArgument != null)
                     lastArgument += " " + argument;
-                else if (argument[0] == ':')
+                else if (argument.Length > 0 && argument[0] == ':')
                 {
                     lastArgument = argument.Substring(1);
                 }
