@@ -89,6 +89,19 @@ namespace CardsAgainstIRC3.Game.DeckTypes
             public List<CardCastCard> responses { get; set; }
         }
 
+        public class DeckSearchResponse
+        {
+            public int total { get; set; }
+            public SearchResults results { get; set; }
+        }
+
+        public class SearchResults
+        {
+            public int count { get; set; }
+            public int offset { get; set; }
+            public DeckResponse[] data { get; set; }
+        }
+
         DeckResponse Deck;
 
         public CardCast(GameManager manager, IEnumerable<string> arguments)
@@ -113,9 +126,23 @@ namespace CardsAgainstIRC3.Game.DeckTypes
 
         public static DeckResponse GetDeckInfo(string str)
         {
+            if (str == "$random")
+                return GetRandomDeck();
+
             var request = WebRequest.CreateHttp("https://api.cardcastgame.com/v1/decks/" + str);
             var response = request.GetResponse();
             return JsonConvert.DeserializeObject<DeckResponse>(new StreamReader(response.GetResponseStream()).ReadToEnd());
+        }
+
+        private static Random _random = new Random();
+        public static DeckResponse GetRandomDeck()
+        {
+            var search_request = WebRequest.CreateHttp("https://api.cardcastgame.com/v1/decks?category=&direction=desc&limit=1&sort=rating&offset=0");
+            var search_response = search_request.GetResponse();
+            var deck_count = JsonConvert.DeserializeObject<DeckSearchResponse>(new StreamReader(search_response.GetResponseStream()).ReadToEnd()).results.count;
+            var deck_request = WebRequest.CreateHttp("https://api.cardcastgame.com/v1/decks?category=&direction=desc&limit=1&sort=rating&offset=" + _random.Next(0, deck_count).ToString());
+            var deck_response = deck_request.GetResponse();
+            return JsonConvert.DeserializeObject<DeckSearchResponse>(new StreamReader(deck_response.GetResponseStream()).ReadToEnd()).results.data[0];
         }
 
         public static CardsResponse GetCards(string str)
