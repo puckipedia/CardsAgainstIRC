@@ -109,7 +109,7 @@ namespace CardsAgainstIRC3.Game.DeckTypes
             if (arguments.Count() == 0)
                 throw new Exception("Need cardcast code");
             Deck = GetDeckInfo(arguments.First());
-            var cards = GetCards(arguments.First());
+            var cards = GetCards(Deck.code);
 
             _whiteCards = new List<Card>();
             _blackCards = new List<Card>();
