@@ -135,12 +135,17 @@ namespace CardsAgainstIRC3.Game.DeckTypes
         }
 
         private static Random _random = new Random();
+        private static int _deck_count = -1;
         public static DeckResponse GetRandomDeck()
         {
-            var search_request = WebRequest.CreateHttp("https://api.cardcastgame.com/v1/decks?category=&direction=desc&limit=1&sort=rating&offset=0");
-            var search_response = search_request.GetResponse();
-            var deck_count = JsonConvert.DeserializeObject<DeckSearchResponse>(new StreamReader(search_response.GetResponseStream()).ReadToEnd()).results.count;
-            var deck_request = WebRequest.CreateHttp("https://api.cardcastgame.com/v1/decks?category=&direction=desc&limit=1&sort=rating&offset=" + _random.Next(0, deck_count).ToString());
+            if (_deck_count < 0)
+            {
+                var search_request = WebRequest.CreateHttp("https://api.cardcastgame.com/v1/decks?category=&direction=desc&limit=1&sort=rating&offset=0");
+                var search_response = search_request.GetResponse();
+                _deck_count = JsonConvert.DeserializeObject<DeckSearchResponse>(new StreamReader(search_response.GetResponseStream()).ReadToEnd()).results.count;
+            }
+
+            var deck_request = WebRequest.CreateHttp("https://api.cardcastgame.com/v1/decks?category=&direction=desc&limit=1&sort=rating&offset=" + _random.Next(0, _deck_count).ToString());
             var deck_response = deck_request.GetResponse();
             return JsonConvert.DeserializeObject<DeckSearchResponse>(new StreamReader(deck_response.GetResponseStream()).ReadToEnd()).results.data[0];
         }
