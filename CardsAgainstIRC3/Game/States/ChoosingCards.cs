@@ -50,10 +50,14 @@ namespace CardsAgainstIRC3.Game.States
             Manager.SendToAll("Current Card: {0}", Manager.CurrentBlackCard.Representation());
 
             foreach (var user in WaitingOnUsers)
-            {
-                user.UpdateCards();
+                if (!user.UpdateCards())
+                {
+                    Manager.SendToAll("WARNING: Not enough cards to continue another round! Continuing, but please add another deck.");
+                    break;
+                }
+
+            foreach (var user in WaitingOnUsers)
                 user.SendCards();
-            }
 
             CheckReady();
         }
