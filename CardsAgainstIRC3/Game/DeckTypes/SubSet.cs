@@ -57,7 +57,7 @@ namespace CardsAgainstIRC3.Game.DeckTypes
         public SubSet(GameManager manager, IEnumerable<string> arguments)
         {
             if (arguments.Count() < 3)
-                throw new Exception("Usage: subset max_white max_black deck_type [deck_arguments][");
+                throw new Exception("Usage: subset max_white max_black deck_type [deck_arguments]");
             _maxWhite = int.Parse(arguments.ElementAt(0));
             _maxBlack = int.Parse(arguments.ElementAt(1));
             _deck = (IDeckType) GameManager.DeckTypes[arguments.ElementAt(2)]
