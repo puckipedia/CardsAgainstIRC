@@ -49,7 +49,7 @@ namespace CardsAgainstIRC3.Game.DeckTypes
         {
             get
             {
-                return string.Format("CardCast: {0} (by {1}, code {2})", Deck.name, Deck.author.username, Deck.code);
+                return string.Format("CardCast: {0} (by {1}, code {2}, {3} white, {4} black)", Deck.name, Deck.author.username, Deck.code, Deck.call_count, Deck.response_count);
             }
         }
 
