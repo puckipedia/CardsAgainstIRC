@@ -338,7 +338,7 @@ namespace CardsAgainstIRC3.Game
 
             int random_card = _random.Next(total_cards);
             int i = 0;
-            foreach (var set in CardSets)
+            foreach (var set in CardSets.OrderBy(a => _random.Next()))
             {
                 i += set.Item1.WhiteCards * set.Item2;
                 if (random_card < i)
