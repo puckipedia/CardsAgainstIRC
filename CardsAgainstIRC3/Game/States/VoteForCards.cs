@@ -187,7 +187,7 @@ namespace CardsAgainstIRC3.Game.States
             if (totalwinners.Count() > 0)
             {
                 if (totalwinners.Count() == 1)
-                    Manager.SendToAll("We have a winner! {0}!", totalwinners.First().Nick);
+                    Manager.SendToAll("We have a winner! {0} won{1}!", totalwinners.First().Nick, totalwinners.First().JoinReason);
                 else
                     Manager.SendToAll("We have winners! {0}!", string.Join(", ", totalwinners.Select(a => a.Nick)));
                 Manager.Reset();
