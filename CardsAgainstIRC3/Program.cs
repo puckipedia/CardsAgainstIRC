@@ -125,7 +125,7 @@ namespace CardsAgainstIRC3
 
                 if (msg.Command == "JOIN" && msg.Origin.Nick == BotName)
                 {
-                    Managers[msg.Arguments[0]] = Game.GameManager.CreateManager(this, this, msg.Arguments[0]);
+                    Managers[msg.Arguments[0]] = Game.GameManager.CreateManager(this, this, msg.Arguments[0], msg.Origin);
                 }
 
                 if (msg.Command == "NICK" && msg.Origin.Nick == BotName)

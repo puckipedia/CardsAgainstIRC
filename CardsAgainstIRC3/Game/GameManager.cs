@@ -45,7 +45,10 @@ namespace CardsAgainstIRC3.Game
 
         public void SendCards()
         {
-            int max_message_length = 512 - 2 - 8 - _manager.Channel.Length - 1 - 1 - Nick.Length - 1;
+            // :{me} NOTICE {user} :{ZWSP}{data}
+            // 512 - 2 - len(": NOTICE  :") - 3 (ZWSP) - len(me) - len(user)
+
+            int max_message_length = 512 - 2 - 11 - 3 - _manager.Me.ToString().Length - Nick.Length;
             List<string> currentSegments = new List<string>();
             int totalLength = 0;
 
@@ -115,11 +118,19 @@ namespace CardsAgainstIRC3.Game
             set;
         } = GameMode.Czar;
 
-        private GameManager(GameMain main, GameOutput output, string Channel)
+        public IRCMessageOrigin Me
+        {
+            get;
+            set;
+        }
+
+        private GameManager(GameMain main, GameOutput output, string Channel, IRCMessageOrigin me)
         {
             this._main = main;
             this._output = output;
             this.Channel = Channel;
+            this.Me = me;
+
             _log = LogManager.GetLogger("GameManager<" + Channel + ">");
 
             if (Bots == null)
@@ -531,9 +542,9 @@ namespace CardsAgainstIRC3.Game
 
 
 
-        public static GameManager CreateManager(GameMain main, GameOutput output, string Channel)
+        public static GameManager CreateManager(GameMain main, GameOutput output, string Channel, IRCMessageOrigin origin)
         {
-            var manager = new GameManager(main, output, Channel);
+            var manager = new GameManager(main, output, Channel, origin);
 
             Thread thread = new Thread(delegate () { manager.Runloop(); });
             manager._runloopThread = thread;
