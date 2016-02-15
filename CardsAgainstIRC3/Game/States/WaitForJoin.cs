@@ -26,6 +26,8 @@ namespace CardsAgainstIRC3.Game.States
                 return;
             }
 
+            Manager.SelectRandomCzar();
+
             Manager.SendToAll("Game is starting...");
             Manager.StartState(new ChoosingCards(Manager));
         }

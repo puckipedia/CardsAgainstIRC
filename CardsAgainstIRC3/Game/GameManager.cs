@@ -113,6 +113,12 @@ namespace CardsAgainstIRC3.Game
             SovietRussia
         }
 
+        public enum LimitMode
+        {
+            Points,
+            Rounds,
+        }
+
         public GameMode Mode
         {
             get;
@@ -161,6 +167,12 @@ namespace CardsAgainstIRC3.Game
         }
 
         public int Limit
+        {
+            get;
+            set;
+        }
+
+        public LimitMode LimitType
         {
             get;
             set;
@@ -228,6 +240,12 @@ namespace CardsAgainstIRC3.Game
                 return _users.Values;
             }
         }
+        
+        public int Rounds
+        {
+            get;
+            set;
+        }
 
         public GameUser CurrentCzar()
         {
@@ -238,6 +256,16 @@ namespace CardsAgainstIRC3.Game
         {
             _currentCzar = (_currentCzar + 1) % _czarOrder.Count;
             return _czarOrder[_currentCzar];
+        }
+
+        public void SelectRandomCzar()
+        {
+            _currentCzar = _random.Next(_czarOrder.Count);
+        }
+
+        public void SetCzar(GameUser user)
+        {
+            _currentCzar = _czarOrder.IndexOf(user) - 1;
         }
 
         public delegate string PointsMetadata(GameUser user);
@@ -340,6 +368,8 @@ namespace CardsAgainstIRC3.Game
             CardSets.Clear();
             Data.Clear();
             Limit = 10;
+            Rounds = 0;
+            LimitType = LimitMode.Points;
         }
 
         public Card TakeWhiteCard()

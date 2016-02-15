@@ -29,7 +29,7 @@ namespace CardsAgainstIRC3.Game.States
             }
 
             CardsetOrder = Manager.AllUsers.Where(a => (a.Bot != null && a.CanChooseCards) || a.HasChosenCards).OrderBy(a => Random.Next()).ToList();
-            if (Manager.Mode == GameManager.GameMode.Czar)
+            if (Manager.Mode != GameManager.GameMode.SovietRussia)
                 ComradeOrder = new List<GameUser>() { Manager.CurrentCzar() };
             else
                 ComradeOrder = CardsetOrder;
@@ -182,9 +182,16 @@ namespace CardsAgainstIRC3.Game.States
             foreach (var person in Manager.AllUsers)
                 person.RemoveCards();
 
+            IEnumerable<GameUser> totalwinners = null;
 
-            var totalwinners = Manager.AllUsers.Where(a => a.Points >= Manager.Limit);
-            if (totalwinners.Count() > 0)
+            if (Manager.LimitType == GameManager.LimitMode.Rounds && Manager.Rounds >= Manager.Limit)
+            {
+                var maxpoints = Manager.AllUsers.OrderByDescending(a => a.Points).First().Points;
+                totalwinners = Manager.AllUsers.Where(a => a.Points == maxpoints);
+            }
+            else if (Manager.LimitType == GameManager.LimitMode.Points)
+                totalwinners = Manager.AllUsers.Where(a => a.Points >= Manager.Limit);
+            if (totalwinners != null && totalwinners.Count() > 0)
             {
                 if (totalwinners.Count() == 1)
                     Manager.SendToAll("We have a winner! {0} won{1}!", totalwinners.First().Nick, totalwinners.First().JoinReason);
@@ -193,7 +200,11 @@ namespace CardsAgainstIRC3.Game.States
                 Manager.Reset();
             }
             else
+            {
+                if (Manager.Mode == GameManager.GameMode.WinnnerIsCzar)
+                    Manager.SetCzar(winners.OrderBy(a => Random.Next()).First());
                 Manager.StartState(new ChoosingCards(Manager));
+            }
         }
 
         public override bool UserLeft(GameUser user, bool voluntarily)

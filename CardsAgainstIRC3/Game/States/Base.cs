@@ -26,7 +26,7 @@ namespace CardsAgainstIRC3.Game.States
         {
             if (arguments.Count() == 0)
             {
-                SendInContext(context, "The current limit is: {0}", Manager.Limit);
+                SendInContext(context, "The current limit is: {0} {1}", Manager.Limit, Manager.LimitType);
             }
             else
             {
@@ -34,7 +34,13 @@ namespace CardsAgainstIRC3.Game.States
                 if (int.TryParse(arguments.First(), out result))
                 {
                     Manager.Limit = result;
-                    Manager.SendPublic(context.Nick, "Set the limit to {0}!", result);
+
+                    if (arguments.ElementAtOrDefault(1)?.ToLowerInvariant()?.StartsWith("r") == true)
+                        Manager.LimitType = GameManager.LimitMode.Rounds;
+                    else
+                        Manager.LimitType = GameManager.LimitMode.Points;
+
+                    Manager.SendPublic(context.Nick, "Set the limit to {0} {1}!", result, Manager.LimitType);
                 }
                 else
                 {
@@ -376,19 +382,24 @@ namespace CardsAgainstIRC3.Game.States
             }
 
             string mode = arguments.First().ToLowerInvariant();
-            if (mode == "czar")
+            if (mode.StartsWith("c"))
             {
                 Manager.Mode = GameManager.GameMode.Czar;
                 Manager.SendPublic(context.Nick, "Mode set to Czar!");
             }
-            else if (mode == "soviet")
+            else if (mode.StartsWith("s"))
             {
                 Manager.Mode = GameManager.GameMode.SovietRussia;
                 Manager.SendPublic(context.Nick, "Mode set to Soviet Russia!");
             }
+            else if (mode.StartsWith("w"))
+            {
+                Manager.Mode = GameManager.GameMode.WinnnerIsCzar;
+                Manager.SendPublic(context.Nick, "Mode set to Winner is Czar!");
+            }
             else
             {
-                SendInContext(context, "Usage: !mode {czar,soviet}");
+                SendInContext(context, "Usage: !mode {czar,soviet,winner}");
             }
         }
     }
