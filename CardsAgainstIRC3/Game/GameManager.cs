@@ -109,6 +109,7 @@ namespace CardsAgainstIRC3.Game
         public enum GameMode
         {
             Czar,
+            WinnnerIsCzar,
             SovietRussia
         }
 
@@ -489,7 +490,7 @@ namespace CardsAgainstIRC3.Game
                         break;
                     if (!_userMap.ContainsKey(msg.Arguments[1]))
                         break;
-                    handleUserLeaving(Resolve(msg.Origin), true);
+                    handleUserLeaving(Resolve(msg.Arguments[1]), true);
                     break;
                 case "PRIVMSG":
                 case "NOTICE":
