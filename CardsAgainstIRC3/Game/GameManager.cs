@@ -265,7 +265,11 @@ namespace CardsAgainstIRC3.Game
 
         public void SetCzar(GameUser user)
         {
-            _currentCzar = _czarOrder.IndexOf(user) - 1;
+            int czarIndex = _czarOrder.IndexOf(user);
+            if (czarIndex < 0)
+                SelectRandomCzar();
+            else
+                _currentCzar = czarIndex - 1;
         }
 
         public delegate string PointsMetadata(GameUser user);
