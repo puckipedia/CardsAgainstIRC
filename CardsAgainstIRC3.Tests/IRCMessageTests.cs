@@ -98,5 +98,42 @@ namespace CardsAgainstIRC3.Tests
 
             Assert.AreEqual(message, tostring);
         }
+
+        [Test(Description = "Parses a(n outgoing) message without origin")]
+        public void ParseWithoutOrigin()
+        {
+            string message = "PRIVMSG ###cards :!card 4 10";
+            var parsed = new IRCMessage(message);
+
+            Assert.AreEqual(parsed.Origin.Nick, null, "Parsed a nick");
+            Assert.AreEqual(parsed.Origin.User, null, "Parsed a user");
+            Assert.AreEqual(parsed.Origin.Host, null, "Parsed a host");
+        }
+
+        [Test(Description = "Origin with just host gets turned into just host")]
+        public void OriginHostOnly()
+        {
+            string origin = "irc.puckipedia.com";
+            IRCMessageOrigin parsed = new IRCMessageOrigin(origin);
+
+            Assert.AreEqual(parsed.Nick, null, "Parsed a nick");
+            Assert.AreEqual(parsed.Host, "irc.puckipedia.com", "Host parsed incorrectly");
+            Assert.AreEqual(parsed.User, null, "Parsed a user");
+
+            Assert.AreEqual(origin, parsed.ToString(), "ToString gave wrong answer");
+        }
+
+        [Test(Description = "Origin with just nick gets turned into just nick")]
+        public void OriginNickOnly()
+        {
+            string origin = "puckipedia";
+            IRCMessageOrigin parsed = new IRCMessageOrigin(origin);
+
+            Assert.AreEqual(parsed.Nick, "puckipedia", "Nick parsed incorrectly");
+            Assert.AreEqual(parsed.Host, null, "Parsed a host");
+            Assert.AreEqual(parsed.User, null, "Parsed a user");
+
+            Assert.AreEqual(origin, parsed.ToString(), "ToString gave wrong answer");
+        }
     }
 }

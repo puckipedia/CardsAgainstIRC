@@ -600,6 +600,7 @@ namespace CardsAgainstIRC3.Game
             OutsideString,
             InDoubleString,
             InSingleString,
+            InCardString,
         }
 
         public static IEnumerable<string> ParseCommandString(string command)
@@ -607,6 +608,7 @@ namespace CardsAgainstIRC3.Game
             StringBuilder storage = new StringBuilder();
             CommandParserState state = CommandParserState.OutsideString;
             bool escape = false;
+            bool inString = false;
 
             foreach (var chr in command)
             {
@@ -623,21 +625,37 @@ namespace CardsAgainstIRC3.Game
                     state = CommandParserState.OutsideString;
                 else if (state == CommandParserState.InSingleString && chr == '\'')
                     state = CommandParserState.OutsideString;
+                else if (state == CommandParserState.InCardString && chr == ']')
+                    state = CommandParserState.OutsideString;
                 else if (state == CommandParserState.OutsideString && chr == '"')
+                {
                     state = CommandParserState.InDoubleString;
+                    inString = true;
+                }
                 else if (state == CommandParserState.OutsideString && chr == '\'')
+                {
                     state = CommandParserState.InSingleString;
+                    inString = true;
+                }
+                else if (state == CommandParserState.OutsideString && chr == '[')
+                {
+                    state = CommandParserState.InCardString;
+                    inString = true;
+                }
+                else if (state == CommandParserState.InCardString && chr == '_')
+                    storage.Append((char) 30); // record seperator
                 else if (state == CommandParserState.OutsideString && chr == ' ')
                 {
-                    if (storage.Length > 0)
+                    if (storage.Length > 0 || inString)
                         yield return storage.ToString();
                     storage.Clear();
+                    inString = false;
                 }
                 else
                     storage.Append(chr);
             }
 
-            if (storage.Length > 0)
+            if (storage.Length > 0 || inString)
                 yield return storage.ToString();
         }
     }
