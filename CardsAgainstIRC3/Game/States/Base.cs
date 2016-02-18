@@ -372,6 +372,27 @@ namespace CardsAgainstIRC3.Game.States
             }
         }
 
+        [CompoundCommand("!card", "add")]
+        public void CardAddCommand(CommandContext context, IEnumerable<string> arguments)
+        {
+            var info = Manager.CardSets.FirstOrDefault(a => a.Item1 is DeckTypes.CustomDeck);
+            if (info == null)
+            {
+                Manager.AddCardSet(new DeckTypes.CustomDeck());
+                info = Manager.CardSets.First(a => a.Item1 is DeckTypes.CustomDeck);
+            }
+
+            var deck = (DeckTypes.CustomDeck) info.Item1;
+            foreach (var arg in arguments)
+            {
+                string[] split = arg.Split((char) 30);
+                if (split.Length == 1)
+                    deck.WhiteCardList.Add(new Card() { Parts = split });
+                else
+                    deck.BlackCardList.Add(new Card() { Parts = split });
+            }
+        }
+
         [Command("!mode")]
         public void ModeCommand(CommandContext context, IEnumerable<string> arguments)
         {

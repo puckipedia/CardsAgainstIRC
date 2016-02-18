@@ -104,6 +104,7 @@
     <Compile Include="Game\Bots\Rando.cs" />
     <Compile Include="Game\Card.cs" />
     <Compile Include="Game\DeckTypes\CardCast.cs" />
+    <Compile Include="Game\DeckTypes\CustomDeck.cs" />
     <Compile Include="Game\DeckTypes\DeckTypeAttribute.cs" />
     <Compile Include="Game\DeckTypes\HitlersTesticleDeckType.cs" />
     <Compile Include="Game\DeckTypes\BlackCard.cs" />
