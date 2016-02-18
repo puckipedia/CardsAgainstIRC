@@ -617,7 +617,7 @@ namespace CardsAgainstIRC3.Game
                     storage.Append(chr);
                     escape = false;
                 }
-                else if ((state == CommandParserState.OutsideString || state == CommandParserState.InDoubleString) && chr == '\\')
+                else if ((state == CommandParserState.OutsideString || state == CommandParserState.InDoubleString || state == CommandParserState.InCardString) && chr == '\\')
                 {
                     escape = true;
                 }
