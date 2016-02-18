@@ -382,15 +382,26 @@ namespace CardsAgainstIRC3.Game.States
                 info = Manager.CardSets.First(a => a.Item1 is DeckTypes.CustomDeck);
             }
 
+            int addedWhite = 0;
+            int addedBlack = 0;
+
             var deck = (DeckTypes.CustomDeck) info.Item1;
             foreach (var arg in arguments)
             {
                 string[] split = arg.Split((char) 30);
                 if (split.Length == 1)
+                {
                     deck.WhiteCardList.Add(new Card() { Parts = split });
+                    addedWhite++;
+                }
                 else
+                {
                     deck.BlackCardList.Add(new Card() { Parts = split });
+                    addedBlack++;
+                }
             }
+
+            Manager.SendPublic(context.Nick, "Added {0} white, {1} black cards", addedWhite, addedBlack);
         }
 
         [Command("!mode")]
