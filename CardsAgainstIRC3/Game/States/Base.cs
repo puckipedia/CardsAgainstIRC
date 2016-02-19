@@ -372,7 +372,7 @@ namespace CardsAgainstIRC3.Game.States
             }
         }
 
-        [CompoundCommand("!card", "add")]
+        [Command("!addcard")]
         public void CardAddCommand(CommandContext context, IEnumerable<string> arguments)
         {
             var info = Manager.CardSets.FirstOrDefault(a => a.Item1 is DeckTypes.CustomDeck);
