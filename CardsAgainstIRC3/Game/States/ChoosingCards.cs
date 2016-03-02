@@ -51,15 +51,29 @@ namespace CardsAgainstIRC3.Game.States
                 Manager.SendToAll("Round {0}! {1}, choose your cards!", Manager.Rounds, string.Join(", ", WaitingOnUsers.Select(a => a.Nick)));
             Manager.SendToAll("Current Card: {0}", Manager.CurrentBlackCard.Representation());
 
-            foreach (var user in WaitingOnUsers)
-                if (!user.UpdateCards())
-                {
-                    Manager.SendToAll("WARNING: Not enough cards to continue another round! Continuing, but please add another deck.");
-                    break;
-                }
+            bool outOfCards = false;
+
+            if (Manager.CurrentBlackCard.Parts.Length > 4)
+                foreach (var user in WaitingOnUsers)
+                    if (!user.AddExtraCards(Manager.CurrentBlackCard.Parts.Length - 2))
+                    {
+                        outOfCards = true;
+                        break;
+                    }
+
+            if (!outOfCards)
+                foreach (var user in WaitingOnUsers)
+                    if (!user.UpdateCards())
+                    {
+                        outOfCards = true;
+                        break;
+                    }
 
             foreach (var user in WaitingOnUsers)
                 user.SendCards();
+
+            if (outOfCards)
+                Manager.SendToAll("WARNING: Not enough cards to continue another round! Continuing, but please add another deck.");
 
             CheckReady();
         }
