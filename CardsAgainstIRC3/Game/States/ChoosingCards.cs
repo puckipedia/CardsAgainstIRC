@@ -53,17 +53,16 @@ namespace CardsAgainstIRC3.Game.States
 
             bool outOfCards = false;
 
-            if (Manager.CurrentBlackCard.Parts.Length > 4)
+            foreach (var user in WaitingOnUsers)
+                if (!user.UpdateCards())
+                {
+                    outOfCards = true;
+                    break;
+                }
+
+            if (!outOfCards && Manager.CurrentBlackCard.Parts.Length > 4)
                 foreach (var user in WaitingOnUsers)
                     if (!user.AddExtraCards(Manager.CurrentBlackCard.Parts.Length - 2))
-                    {
-                        outOfCards = true;
-                        break;
-                    }
-
-            if (!outOfCards)
-                foreach (var user in WaitingOnUsers)
-                    if (!user.UpdateCards())
                     {
                         outOfCards = true;
                         break;

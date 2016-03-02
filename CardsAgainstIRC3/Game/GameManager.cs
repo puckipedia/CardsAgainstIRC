@@ -27,7 +27,7 @@ namespace CardsAgainstIRC3.Game
                         Cards[i] = _manager.TakeWhiteCard();
                     }
 
-                while (Cards.Count < NominalCardCount
+                while (Cards.Count < NominalCardCount)
                     Cards.Add(_manager.TakeWhiteCard());
 
                 return true;
