@@ -17,9 +17,9 @@ namespace CardsAgainstIRC3.Game
             _manager = manager;
         }
 
-        public bool UpdateCards()
+        public bool UpdateCards(int i = 0)
         {
-            for (var i = 0; i < Cards.Length; i++)
+            for (; i < Cards.Count; i++)
                 if (!Cards[i].HasValue)
                 {
                     try {
@@ -41,6 +41,19 @@ namespace CardsAgainstIRC3.Game
 
             foreach (var card in cards)
                 Cards[card] = null;
+
+            while (Cards.Count > NominalCardCount)
+            {
+                Cards.RemoveAt (Cards.FindIndex (a => a == null));
+            }
+        }
+
+        public bool AddExtraCards(int count)
+        {
+            for (int i = 0; i < count; i++)
+                Cards.Add (null);
+
+            return UpdateCards (Cards.Count - count);
         }
 
         public void SendCards()
@@ -52,7 +65,7 @@ namespace CardsAgainstIRC3.Game
             List<string> currentSegments = new List<string>();
             int totalLength = 0;
 
-            for (int i = 0; i < Cards.Length; i++)
+            for (int i = 0; i < Cards.Count; i++)
             {
                 var newSegment = string.Format("{0}: {1}", i, (!Cards[i].HasValue ? "<null>" : Cards[i].Value.Representation()));
                 if (totalLength + 3 + newSegment.Length > max_message_length)
@@ -72,9 +85,10 @@ namespace CardsAgainstIRC3.Game
 
         public string Nick = "";
         public Guid Guid = Guid.NewGuid();
-        public Card?[] Cards = new Card?[10];
+        public List<Card?> Cards = new List<Card?>(10);
         public int[] ChosenCards = new int[0];
         public int Points = 0;
+        public int NominalCardCount = 10;
         public bool HasVoted = false;
         public bool HasChosenCards = false;
 
@@ -548,7 +562,6 @@ namespace CardsAgainstIRC3.Game
 
         private AutoResetEvent _autoResetEvent = new AutoResetEvent(false);
         private ConcurrentQueue<IRCMessage> _messages = new ConcurrentQueue<IRCMessage>();
-        private Thread _runloopThread;
         private void Runloop()
         {
             DateTime start = DateTime.Now;
@@ -582,7 +595,6 @@ namespace CardsAgainstIRC3.Game
             var manager = new GameManager(main, output, Channel, origin);
 
             Thread thread = new Thread(delegate () { manager.Runloop(); });
-            manager._runloopThread = thread;
 
             thread.Start();
             return manager;
