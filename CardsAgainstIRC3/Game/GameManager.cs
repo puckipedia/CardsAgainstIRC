@@ -19,19 +19,23 @@ namespace CardsAgainstIRC3.Game
 
         public bool UpdateCards(int i = 0)
         {
-            for (; i < Cards.Count; i++)
-                if (!Cards[i].HasValue)
-                {
-                    try {
+            try
+            {
+                for (; i < Cards.Count; i++)
+                    if (!Cards[i].HasValue)
+                    {
                         Cards[i] = _manager.TakeWhiteCard();
                     }
-                    catch (InvalidOperationException)
-                    {
-                        return false;
-                    }
-                }
 
-            return true;
+                while (Cards.Count < NominalCardCount
+                    Cards.Add(_manager.TakeWhiteCard());
+
+                return true;
+            }
+            catch (InvalidOperationException)
+            {
+                return false;
+            }
         }
 
         public void RemoveCards(IEnumerable<int> cards = null)
