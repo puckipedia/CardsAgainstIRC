@@ -60,7 +60,7 @@ namespace CardsAgainstIRC3.Game.States
                     break;
                 }
 
-            if (!outOfCards && Manager.CurrentBlackCard.Parts.Length > 4)
+            if (!outOfCards && Manager.CurrentBlackCard.Parts.Length > 3)
                 foreach (var user in WaitingOnUsers)
                     if (!user.AddExtraCards(Manager.CurrentBlackCard.Parts.Length - 2))
                     {
