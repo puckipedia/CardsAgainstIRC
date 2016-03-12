@@ -44,7 +44,8 @@ namespace CardsAgainstIRC3.Game
                 cards = ChosenCards;
 
             foreach (var card in cards)
-                Cards[card] = null;
+                if (card < Cards.Count)
+                    Cards[card] = null;
 
             while (Cards.Count > NominalCardCount)
             {
