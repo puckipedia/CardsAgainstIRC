@@ -108,11 +108,6 @@ namespace CardsAgainstIRC3
                 Send(new IRCMessage() { Command = "PASS", Arguments = new string[] { Config.IRC.Pass } });
             Send(new IRCMessage() { Command = "NICK", Arguments = new string[] { Config.IRC.Name } });
             Send(new IRCMessage() { Command = "USER", Arguments = new string[] { Config.IRC.User, "*", "*", Config.IRC.Gecos } });
-
-            foreach (var channel in Config.Channels)
-            {
-                Send(new IRCMessage() { Command = "JOIN", Arguments = new string[] { channel } });
-            }
         }
 
         public void Go()
@@ -122,6 +117,12 @@ namespace CardsAgainstIRC3
                 string Line = Reader.ReadLine();
                 Console.WriteLine("< {0}", Line);
                 IRCMessage msg = new IRCMessage(Line);
+
+                if (msg.Command == "376")
+                    foreach (var channel in Config.Channels)
+                    {
+                        Send(new IRCMessage() { Command = "JOIN", Arguments = new string[] { channel } });
+                    }
 
                 if (msg.Command == "JOIN" && msg.Origin.Nick == BotName)
                 {
